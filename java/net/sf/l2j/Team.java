@@ -9,7 +9,7 @@ public class Team
     public static void info()
     {
         _log.info("================================================================================");
-        _log.info("                            *** Projeto Atualizado - 22/07/2025 ***                           ");
+        _log.info("                            *** Projeto Atualizado - 25/07/2025 ***                           ");
         _log.info("================================================================================");
         _log.info("                              - Whatssap: 5585 994516368                               ");
         _log.info("                              - Carlinhos: Suporte                              ");

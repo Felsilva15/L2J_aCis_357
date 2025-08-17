@@ -51,8 +51,18 @@ public class SummonItems implements IItemHandler
 			activeChar.sendPacket(SystemMessageId.CANT_MOVE_SITTING);
 			return;
 		}
-		if (!DMEvent.onItemSummon(playable.getObjectId()) || !DMEvent.onItemSummon(playable.getObjectId()) || TvTEvent.onItemSummon(playable.getObjectId()) )
- 			return;
+		if (!DMEvent.onItemSummon(playable.getObjectId()))
+		{
+		//	System.out.println("[SummonDebug] Bloqueado por DMEvent.");
+			return;
+		}
+
+		if (!TvTEvent.onItemSummon(playable.getObjectId()))
+		{
+		//	System.out.println("[SummonDebug] Bloqueado por TvTEvent.");
+			return;
+		}
+
 		if (activeChar.isInObserverMode())
 			return;
 		
