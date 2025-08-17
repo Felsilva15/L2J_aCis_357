@@ -15,6 +15,7 @@ import net.sf.l2j.gameserver.network.serverpackets.ActionFailed;
 
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 public class ScrollOfResurrection implements IItemHandler
@@ -28,6 +29,12 @@ public class ScrollOfResurrection implements IItemHandler
 		if (!KTBEvent.onScrollUse(playable.getObjectId()))
 		{
 			playable.sendMessage("You can not do this in KTB Event");
+			playable.sendPacket(ActionFailed.STATIC_PACKET);
+			return;
+		}
+		if (!TvTEvent.onScrollUse(playable.getObjectId()))
+		{
+			playable.sendMessage("You can not do this in TvT Event");
 			playable.sendPacket(ActionFailed.STATIC_PACKET);
 			return;
 		}

@@ -60,9 +60,8 @@ public final class Config
 	
 	
 	/**Eventos **/
-	public static final String TVT_FILE = "./config/aCis/Eventos/TvT.properties";
 	public static final String CTF_FILE = "./config/aCis/Eventos/Ctf.properties";
-	public static final String PVP_EVENT_FILE = "./config/aCis/Eventos/PvP.properties";
+	public static final String PVP_EVENT_FILE = "./config/aCis/Eventos/PvPEvent.properties";
 	public static final String SOLOBOSS_FILE = "./config/aCis/Eventos/SoloBossEvent.properties";
 	public static final String PARTY_ZONE_FILE = "./config/aCis/Eventos/PartyZone.properties";
 	public static final String TOURNAMENT_FILE = "./config/aCis/Eventos/Tournament.properties";
@@ -123,7 +122,7 @@ public final class Config
     public static int TIMED_ITEM_TIME;
 	public static String RAID_RESPAWN_IDS;
 	public static List<Integer> RAID_RESPAWN_IDS_LIST;
-	
+	public static boolean SCREN_MSG;
 	
 	/** Variaveis Community */
 	public static int[] MARKETPLACE_FEE = new int[2];
@@ -161,14 +160,31 @@ public final class Config
 	
 	public static boolean PVP_EVENT_ENABLED;	  
 	public static String[] PVP_EVENT_INTERVAL;	  
-	public static int PVP_EVENT_RUNNING_TIME;	  
-	public static int[][] PVP_EVENT_REWARDS; 
+	public static int PVP_EVENT_RUNNING_TIME;
+	public static final Map<Integer, List<int[]>> PVP_EVENT_RANK_REWARDS = new HashMap<>();
 	public static boolean ALLOW_SPECIAL_PVP_REWARD;
 	public static List<int[]> PVP_SPECIAL_ITEMS_REWARD;
 	public static boolean SCREN_MSG_PVP;
 	public static int pvp_locx;
 	public static int pvp_locy;
 	public static int pvp_locz;
+	public static boolean NO_INVITE_PVPEVENT;
+	public static boolean BLOCK_PVPEVENTCLASS;
+	public static String STRING_NAME_PVPEVENT;
+	public static boolean ZONEPVPEVENT_ALLOW_INTERFERENCE;
+	public static boolean ENABLE_NAME_TITLE_PVPEVENT;
+	public static boolean BLOCK_CREST_PVPEVENT;
+	public static String WEAPON_ID_ENCHANT_RESTRICT;
+	public static List<Integer> WEAPON_LIST_ID_ENCHANT_RESTRICT;
+	public static String ARMOR_ID_ENCHANT_RESTRICT;
+	public static List<Integer> ARMOR_LIST_ID_ENCHANT_RESTRICT;
+	public static boolean PVP_ITEM_ENCHANT_EVENT;	
+	public static float PVP_ITEM_ENCHANT_WEAPON_CHANCE;	
+	public static float PVP_ITEM_ENCHANT_ARMOR_CHANCE;	
+	public static int CHECK_MIN_ENCHANT_WEAPON;	
+	public static int CHECK_MAX_ENCHANT_WEAPON;	
+	public static int CHECK_MIN_ENCHANT_ARMOR_JEWELS;	
+	public static int CHECK_MAX_ENCHANT_ARMOR_JEWELS;	
 	
 	/** Variaveis Solo Boss Event */
 	public static int NPC_GK_SOLOBOSS; //GK
@@ -1447,41 +1463,6 @@ public final class Config
 	public static int OLYMPIAD_SKILL_DANO;
 	public static float ALT_PETS_PHYSICAL_DAMAGE_MULTI;
 	public static float ALT_PETS_MAGICAL_DAMAGE_MULTI;
-	
-	//----------------------------------------
-	//   tvt.properties
-	//----------------------------------------
-	public static boolean TVT_EVENT_ENABLED;
-	public static boolean TVT_SKILL_PROTECT;
-	public static List<Integer> TVT_SKILL_LIST = new ArrayList<>();
-	public static boolean DEBUG_TVT;
-	public static String TVT_EVEN_TEAMS;
-	public static boolean TVT_ALLOW_INTERFERENCE;
-	public static boolean TVT_ALLOW_POTIONS;
-	public static boolean TVT_ALLOW_SUMMON;
-	public static boolean TVT_ON_START_REMOVE_ALL_EFFECTS;
-	public static boolean TVT_ON_START_UNSUMMON_PET;
-	public static boolean TVT_REVIVE_RECOVERY;
-	public static boolean TVT_ANNOUNCE_TEAM_STATS;
-	public static boolean TVT_ANNOUNCE_REWARD;
-	public static boolean TVT_ANNOUNCE_LVL;
-	public static boolean TVT_PRICE_NO_KILLS;
-	public static boolean TVT_JOIN_CURSED;
-	public static boolean TVT_COMMAND;
-	public static long TVT_REVIVE_DELAY;
-	public static boolean TVT_OPEN_FORT_DOORS;
-	public static boolean TVT_CLOSE_FORT_DOORS;
-	public static boolean TVT_OPEN_ADEN_COLOSSEUM_DOORS;
-	public static boolean TVT_CLOSE_ADEN_COLOSSEUM_DOORS;
-	public static int TVT_TOP_KILLER_REWARD;
-	public static int TVT_TOP_KILLER_QTY;
-	public static boolean TVT_AURA;
-	public static boolean TVT_STATS_LOGGER;
-	public static boolean Allow_Same_HWID_On_tvt;
-	public static boolean SCREN_MSG;
-	public static int TVT_OBSERVER_X;
-	public static int TVT_OBSERVER_Y;
-	public static int TVT_OBSERVER_Z;
 	
 	//----------------------------------------
 	//   ctf.properties
@@ -4452,7 +4433,6 @@ public final class Config
 		NAME_TVT = l2jserver.getProperty("NameTvTEvent", "TvT:");
 		NAME_TOUR = l2jserver.getProperty("NameTournament", "Tournament:");
 		NAME_CTF = l2jserver.getProperty("NameCTFEvent", "CTF:");
-		NAME_PVP = l2jserver.getProperty("NamePvPEvent", "PvPEvent:");
 		NAME_EVENT = l2jserver.getProperty("NamePartyZone", "PartyZone:");
 		
 		ANNOUNCE_ID_EVENT = Integer.parseInt(l2jserver.getProperty("AnnounceIdEvents", "3"));
@@ -5056,33 +5036,99 @@ public final class Config
 	{
 		final ExProperties pvpevent = initProperties(Config.PVP_EVENT_FILE);
 		
-		
 		PVP_EVENT_ENABLED = pvpevent.getProperty("PvPEventEnabled", false);
 		PVP_EVENT_INTERVAL = pvpevent.getProperty("PvPZEventInterval", "20:00").split(",");
 		PVP_EVENT_RUNNING_TIME = pvpevent.getProperty("PvPZEventRunningTime", 120);
-		PVP_EVENT_REWARDS = parseItemsList(pvpevent.getProperty("PvPEventWinnerReward", "6651,50"));
+
+		PVP_EVENT_RANK_REWARDS.clear();
+		for (String key : pvpevent.stringPropertyNames())
+		{
+			if (key.startsWith("Rank_"))
+			{
+				try
+				{
+					int rank = Integer.parseInt(key.substring(5)); // pega o número depois de "Rank_"
+					String line = pvpevent.getProperty(key);
+					if (line.isEmpty()) continue;
+
+					List<int[]> rewardList = new ArrayList<>();
+					for (String part : line.split(";"))
+					{
+						String[] itemSplit = part.trim().split(",");
+						if (itemSplit.length != 2) continue;
+
+						int itemId = Integer.parseInt(itemSplit[0]);
+						int amount = Integer.parseInt(itemSplit[1]);
+						rewardList.add(new int[] { itemId, amount });
+					}
+					PVP_EVENT_RANK_REWARDS.put(rank, rewardList);
+				}
+				catch (Exception e)
+				{
+					_log.warning("Erro ao carregar recompensa do " + key + ": " + e.getMessage());
+				}
+			}
+		}
+
 		ALLOW_SPECIAL_PVP_REWARD = pvpevent.getProperty("SpecialPvpRewardEnabled", false);
 		PVP_SPECIAL_ITEMS_REWARD = new ArrayList<>();
 		String[] pvpSpeReward = pvpevent.getProperty("SpecialPvpItemsReward", "57,100000").split(";");
-		for (String reward : pvpSpeReward) {
+		for (String reward : pvpSpeReward) 
+		{
 			String[] rewardSplit = reward.split(",");
-			if (rewardSplit.length != 2) {
-				_log.warning("SpecialPvpItemsReward: invalid config property -> PvpItemsReward \""+ reward + "\"");
-			} else {
-				try {
-					PVP_SPECIAL_ITEMS_REWARD.add(new int[] { Integer.parseInt(rewardSplit[0]), 
-						Integer.parseInt(rewardSplit[1]) });
-				} catch (NumberFormatException nfe) {
-					if (!reward.isEmpty())
-						_log.warning("SpecialPvpItemsReward: invalid config property -> PvpItemsReward \""+ reward + "\""); 
-				} 
+			if (rewardSplit.length != 2)
+			{
+				_log.warning("SpecialPvpItemsReward: inválido -> " + reward);
 			} 
+			else
+			{
+				try
+				{
+					PVP_SPECIAL_ITEMS_REWARD.add(new int[] {
+						Integer.parseInt(rewardSplit[0]), 
+						Integer.parseInt(rewardSplit[1])
+					});
+				} 
+				catch (NumberFormatException nfe)
+				{
+					_log.warning("Erro ao converter SpecialPvpItemsReward -> " + reward);
+				} 
+			}
 		}
-		
+
 		SCREN_MSG_PVP = pvpevent.getProperty("SummonToPvPEnabled", false);
 		pvp_locx = Integer.parseInt(pvpevent.getProperty("SummonToPvPLocx", "1"));
 		pvp_locy = Integer.parseInt(pvpevent.getProperty("SummonToPvPLocy", "1"));
 		pvp_locz = Integer.parseInt(pvpevent.getProperty("SummonToPvPLocz", "1"));
+
+		NAME_PVP = pvpevent.getProperty("NamePvPEvent", "PvPEvent:");
+		NO_INVITE_PVPEVENT = pvpevent.getProperty("BlockInvitePTEvent", false);
+		BLOCK_PVPEVENTCLASS = pvpevent.getProperty("BlockClassHealePvPEvent", false);
+		STRING_NAME_PVPEVENT = pvpevent.getProperty("NewNameCharacterPVP", "Welcome to l2j server!");
+		ZONEPVPEVENT_ALLOW_INTERFERENCE = pvpevent.getProperty("BlockInterfacePvPEvent", false);
+		ENABLE_NAME_TITLE_PVPEVENT = pvpevent.getProperty("EnableTitleYNamePvPEvent", false);
+		BLOCK_CREST_PVPEVENT = pvpevent.getProperty("BlockCrestInPvPEventZone", false);
+
+		WEAPON_ID_ENCHANT_RESTRICT = pvpevent.getProperty("WeaponAllowedToEnchant", "");
+		WEAPON_LIST_ID_ENCHANT_RESTRICT = new ArrayList<>();
+		for (String id : WEAPON_ID_ENCHANT_RESTRICT.split(","))
+			if (!id.isEmpty())
+				WEAPON_LIST_ID_ENCHANT_RESTRICT.add(Integer.parseInt(id));
+
+		ARMOR_ID_ENCHANT_RESTRICT = pvpevent.getProperty("ArmorAllowedToEnchant", "");
+		ARMOR_LIST_ID_ENCHANT_RESTRICT = new ArrayList<>();
+		for (String id : ARMOR_ID_ENCHANT_RESTRICT.split(","))
+			if (!id.isEmpty())
+				ARMOR_LIST_ID_ENCHANT_RESTRICT.add(Integer.parseInt(id));
+
+		PVP_ITEM_ENCHANT_EVENT = pvpevent.getProperty("EnchantEquipByPvp", false);
+		PVP_ITEM_ENCHANT_WEAPON_CHANCE = Float.parseFloat(pvpevent.getProperty("ChanceToEnchantWeapon", "1.0"));
+		PVP_ITEM_ENCHANT_ARMOR_CHANCE = Float.parseFloat(pvpevent.getProperty("ChanceToEnchantArmor", "1.0"));
+
+		CHECK_MIN_ENCHANT_WEAPON = pvpevent.getProperty("CheckMinEnchatWeapon", 0);
+		CHECK_MAX_ENCHANT_WEAPON = pvpevent.getProperty("CheckMaxEnchatWeapon", 0);
+		CHECK_MIN_ENCHANT_ARMOR_JEWELS = pvpevent.getProperty("CheckMinEnchatArmorJewels", 0);
+		CHECK_MAX_ENCHANT_ARMOR_JEWELS = pvpevent.getProperty("CheckMaxEnchatArmorJewels", 0);
 	}
 	
 	
@@ -5125,55 +5171,6 @@ public final class Config
 		ALT_PETS_MAGICAL_DAMAGE_MULTI = Float.parseFloat(PHYSICSSetting.getProperty("AltMDamagePets", "1.00"));
 	}
 	
-	
-	/**
-	 * Loads TvT settings.
-	 */
-	private static final void loadTvT()
-	{
-		final ExProperties tvt = initProperties(Config.TVT_FILE);
-		
-		TVT_EVENT_ENABLED = Boolean.parseBoolean(tvt.getProperty("TVTEventEnabled", "false"));
-		
-		TVT_SKILL_PROTECT = Boolean.parseBoolean(tvt.getProperty("TvTSkillProtect", "false"));
-		for (String id : tvt.getProperty("TvTDisableSkillList", "0").split(","))
-		{
-			TVT_SKILL_LIST.add(Integer.parseInt(id));
-		}
-		DEBUG_TVT = tvt.getProperty("DebugTvT", true);
-		TVT_EVEN_TEAMS = tvt.getProperty("TvTEvenTeams", "BALANCE");
-		TVT_ALLOW_INTERFERENCE = Boolean.parseBoolean(tvt.getProperty("TvTAllowInterference", "False"));
-		TVT_ALLOW_POTIONS = Boolean.parseBoolean(tvt.getProperty("TvTAllowPotions", "False"));
-		TVT_ALLOW_SUMMON = Boolean.parseBoolean(tvt.getProperty("TvTAllowSummon", "False"));
-		TVT_ON_START_REMOVE_ALL_EFFECTS = Boolean.parseBoolean(tvt.getProperty("TvTOnStartRemoveAllEffects", "True"));
-		TVT_ON_START_UNSUMMON_PET = Boolean.parseBoolean(tvt.getProperty("TvTOnStartUnsummonPet", "True"));
-		TVT_REVIVE_RECOVERY = Boolean.parseBoolean(tvt.getProperty("TvTReviveRecovery", "False"));
-		TVT_ANNOUNCE_TEAM_STATS = Boolean.parseBoolean(tvt.getProperty("TvTAnnounceTeamStats", "False"));
-		TVT_ANNOUNCE_REWARD = Boolean.parseBoolean(tvt.getProperty("TvTAnnounceReward", "False"));
-		TVT_ANNOUNCE_LVL = Boolean.parseBoolean(tvt.getProperty("TvTAnnounceLevel", "False"));
-		TVT_PRICE_NO_KILLS = Boolean.parseBoolean(tvt.getProperty("TvTPriceNoKills", "False"));
-		TVT_JOIN_CURSED = Boolean.parseBoolean(tvt.getProperty("TvTJoinWithCursedWeapon", "True"));
-		TVT_COMMAND = Boolean.parseBoolean(tvt.getProperty("TvTCommand", "True"));
-		TVT_REVIVE_DELAY = Long.parseLong(tvt.getProperty("TvTReviveDelay", "20000"));
-		if (TVT_REVIVE_DELAY < 1000)
-			TVT_REVIVE_DELAY = 1000; // can't be set less then 1 second
-		TVT_OPEN_FORT_DOORS = Boolean.parseBoolean(tvt.getProperty("TvTOpenFortDoors", "False"));
-		TVT_CLOSE_FORT_DOORS = Boolean.parseBoolean(tvt.getProperty("TvTCloseFortDoors", "False"));
-		TVT_OPEN_ADEN_COLOSSEUM_DOORS = Boolean.parseBoolean(tvt.getProperty("TvTOpenAdenColosseumDoors", "False"));
-		TVT_CLOSE_ADEN_COLOSSEUM_DOORS = Boolean.parseBoolean(tvt.getProperty("TvTCloseAdenColosseumDoors", "False"));
-		TVT_TOP_KILLER_REWARD = Integer.parseInt(tvt.getProperty("TvTTopKillerRewardId", "5575"));
-		TVT_TOP_KILLER_QTY = Integer.parseInt(tvt.getProperty("TvTTopKillerRewardQty", "2000000"));
-		TVT_AURA = Boolean.parseBoolean(tvt.getProperty("TvTAura", "False"));
-		TVT_STATS_LOGGER = Boolean.parseBoolean(tvt.getProperty("TvTStatsLogger", "true"));
-		Allow_Same_HWID_On_tvt = Boolean.parseBoolean(tvt.getProperty("SameHWIDOnTvT", "true"));
-		
-		SCREN_MSG = Boolean.parseBoolean(tvt.getProperty("TvTScreenMsg", "false"));
-		
-		TVT_OBSERVER_X = Integer.parseInt(tvt.getProperty("ObserverLocx", "83400"));
-		TVT_OBSERVER_Y = Integer.parseInt(tvt.getProperty("ObserverLocy", "-16296"));
-		TVT_OBSERVER_Z = Integer.parseInt(tvt.getProperty("ObserverLocz", "-1888"));
-	}
-	
 	/**
 	 * Loads CTF settings.
 	 */
@@ -5182,7 +5179,7 @@ public final class Config
 		final ExProperties CTFSettings = initProperties(Config.CTF_FILE);
 		
 		CTF_EVENT_ENABLED = Boolean.parseBoolean(CTFSettings.getProperty("CTFEventEnabled", "false"));
-		
+		SCREN_MSG = Boolean.parseBoolean(CTFSettings.getProperty("CTFScreenMsg", "false"));
 		CTF_EVEN_TEAMS = CTFSettings.getProperty("CTFEvenTeams", "BALANCE");
 		CTF_ALLOW_INTERFERENCE = Boolean.parseBoolean(CTFSettings.getProperty("CTFAllowInterference", "False"));
 		CTF_ALLOW_POTIONS = Boolean.parseBoolean(CTFSettings.getProperty("CTFAllowPotions", "False"));
@@ -7514,9 +7511,6 @@ public final class Config
 		loadPhysics();
 		loadOlympiadPhysics();
 		loadBalanceSkills();
-		
-		// TvT Settings
-		loadTvT();
 		
 		// CTF Settings
 		loadCTF();

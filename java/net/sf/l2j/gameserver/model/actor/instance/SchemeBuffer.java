@@ -11,7 +11,6 @@ import net.sf.l2j.commons.math.MathUtil;
 import net.sf.l2j.Config;
 
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.data.BufferTable;
 import net.sf.l2j.gameserver.data.SkillTable;
 import net.sf.l2j.gameserver.model.L2Skill;
@@ -23,6 +22,8 @@ import net.sf.l2j.gameserver.network.SystemMessageId;
 import net.sf.l2j.gameserver.network.serverpackets.MagicSkillUse;
 import net.sf.l2j.gameserver.network.serverpackets.NpcHtmlMessage;
 import net.sf.l2j.gameserver.network.serverpackets.SystemMessage;
+
+import Dev.Event.TvT.TvTEvent;
 
 public class SchemeBuffer extends Folk
 {
@@ -65,7 +66,7 @@ public class SchemeBuffer extends Folk
 		else if (currentCommand.equalsIgnoreCase("restore"))
 		{
 			
-			if ((player._inEventTvT && TvT.is_started() || player._inEventCTF && CTF.is_started()) && !player.isGM())
+			if ((TvTEvent.isPlayerParticipant(player.getObjectId()) && TvTEvent.isStarted() || player._inEventCTF && CTF.is_started()) && !player.isGM())
 			{
 				player.sendMessage("You can not do that.");
 				return;

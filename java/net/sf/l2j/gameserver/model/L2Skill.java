@@ -1,7 +1,15 @@
 package net.sf.l2j.gameserver.model;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.logging.Logger;
+
+import net.sf.l2j.Config;
+import net.sf.l2j.commons.math.MathUtil;
+import net.sf.l2j.commons.util.ArraysUtil;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.data.SkillTable;
 import net.sf.l2j.gameserver.data.SkillTreeTable;
 import net.sf.l2j.gameserver.geoengine.GeoEngine;
@@ -38,17 +46,7 @@ import net.sf.l2j.gameserver.taskmanager.DecayTaskManager;
 import net.sf.l2j.gameserver.templates.StatsSet;
 import net.sf.l2j.gameserver.templates.skills.L2SkillType;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.StringTokenizer;
-import java.util.logging.Logger;
-
-import net.sf.l2j.commons.math.MathUtil;
-import net.sf.l2j.commons.util.ArraysUtil;
-
-import net.sf.l2j.Config;
-
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 public abstract class L2Skill implements IChanceSkillTrigger
@@ -1543,14 +1541,14 @@ public abstract class L2Skill implements IChanceSkillTrigger
 					if (activeChar instanceof Player && obj instanceof Player && ((Player) activeChar).getAppearance().getInvisible() && !((Player) obj).getAppearance().getInvisible())
 						continue;
 					
-					if (TvT.is_started() && activeChar instanceof Player && obj instanceof Player && activeChar._inEventTvT && activeChar._teamNameTvT.equals(obj._teamNameTvT))
-						continue;
+			//		if (TvT.is_started() && activeChar instanceof Player && obj instanceof Player && activeChar._inEventTvT && activeChar._teamNameTvT.equals(obj._teamNameTvT))
+				//		continue;
 					
-					if (TvT.is_started() && activeChar instanceof Player && obj instanceof Player && activeChar._inEventTvT && !obj._inEventTvT)
-						continue;
+				//	if (TvT.is_started() && activeChar instanceof Player && obj instanceof Player && activeChar._inEventTvT && !obj._inEventTvT)
+					//	continue;
 					
-					if (TvT.is_started() && activeChar instanceof Player && obj instanceof Player && !activeChar._inEventTvT && obj._inEventTvT)
-						continue;
+				//	if (TvT.is_started() && activeChar instanceof Player && obj instanceof Player && !activeChar._inEventTvT && obj._inEventTvT)
+					//	continue;
 					
 					if (CTF.is_started() && activeChar instanceof Player && obj instanceof Player && activeChar._inEventCTF && activeChar._teamNameCTF.equals(obj._teamNameCTF))
 						continue;
@@ -1765,14 +1763,14 @@ public abstract class L2Skill implements IChanceSkillTrigger
 								continue;
 						}
 						
-						if (TvT.is_started() && activeChar instanceof Player && player._inEventTvT && obj._inEventTvT)
-							continue;
+				//		if (TvT.is_started() && activeChar instanceof Player && player._inEventTvT && obj._inEventTvT)
+					//		continue;
 						
-						if (TvT.is_started() && activeChar instanceof Player && player._inEventTvT && !obj._inEventTvT)
-							continue;
+					//	if (TvT.is_started() && activeChar instanceof Player && player._inEventTvT && !obj._inEventTvT)
+						//	continue;
 						
-						if (TvT.is_started() && activeChar instanceof Player && !player._inEventTvT && obj._inEventTvT)
-							continue;
+				//		if (TvT.is_started() && activeChar instanceof Player && !player._inEventTvT && obj._inEventTvT)
+				//			continue;
 						
 						if (CTF.is_started() && activeChar instanceof Player && player._inEventCTF && obj._inEventCTF)
 							continue;
@@ -2215,6 +2213,17 @@ public abstract class L2Skill implements IChanceSkillTrigger
 				
 				// Same commandchannel
 				if (player.getParty().getCommandChannel() != null && player.getParty().getCommandChannel() == targetPlayer.getParty().getCommandChannel())
+					return false;
+			}
+			if (player.isInTVTEvent() && targetPlayer.isInTVTEvent())
+			{
+				byte playerTvTTeamId = TvTEvent.getParticipantTeamId(player.getObjectId());
+				byte targetedPlayerTvTTeamId = TvTEvent.getParticipantTeamId(targetPlayer.getObjectId());
+
+				if (playerTvTTeamId == 0 && targetedPlayerTvTTeamId == 0)
+					return false;
+
+				if (playerTvTTeamId == 1 && targetedPlayerTvTTeamId == 1)
 					return false;
 			}
 			if (player.isInFOSEvent() && targetPlayer.isInFOSEvent())

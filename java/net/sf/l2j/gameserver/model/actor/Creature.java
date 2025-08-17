@@ -1,5 +1,17 @@
 package net.sf.l2j.gameserver.model.actor;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+
+import net.sf.l2j.Config;
+import net.sf.l2j.commons.concurrent.ThreadPool;
+import net.sf.l2j.commons.math.MathUtil;
+import net.sf.l2j.commons.random.Rnd;
 import net.sf.l2j.gameserver.GameTimeController;
 import net.sf.l2j.gameserver.data.MapRegionTable;
 import net.sf.l2j.gameserver.data.MapRegionTable.TeleportType;
@@ -94,22 +106,10 @@ import net.sf.l2j.gameserver.templates.skills.L2EffectType;
 import net.sf.l2j.gameserver.templates.skills.L2SkillType;
 import net.sf.l2j.gameserver.util.Broadcast;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-
-import net.sf.l2j.commons.math.MathUtil;
-import net.sf.l2j.commons.random.Rnd;
-
-import net.sf.l2j.Config;
-import net.sf.l2j.commons.concurrent.ThreadPool;
-
 import Dev.Event.DeathMatch.DMConfig;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTConfig;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSConfig;
 import Dev.Event.TvTFortress.FOSEvent;
 
@@ -549,6 +549,23 @@ public abstract class Creature extends WorldObject
 		}
 		if (player != null && targetPlayer != null)
 		{
+			if (player.isInTVTEvent() && targetPlayer.isInTVTEvent())
+			{
+				byte playerTvTTeamId = TvTEvent.getParticipantTeamId(player.getObjectId());
+				byte targetedPlayerTvTTeamId = TvTEvent.getParticipantTeamId(targetPlayer.getObjectId());
+				
+				if (playerTvTTeamId == 0 && targetedPlayerTvTTeamId == 0)
+				{
+					player.abortAttack();
+					return;
+				}
+				if (playerTvTTeamId == 1 && targetedPlayerTvTTeamId == 1)
+				{
+					player.abortAttack();
+					return;
+				}
+			}
+			
 			if (player.isInFOSEvent() && targetPlayer.isInFOSEvent())
 			{
 				byte playerFOSTeamId = FOSEvent.getParticipantTeamId(player.getObjectId());
@@ -4445,6 +4462,9 @@ public abstract class Creature extends WorldObject
 		if (FOSConfig.FOS_PLAYER_CAN_BE_KILLED_IN_PZ && target.getActingPlayer() != null && FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(target.getActingPlayer().getObjectId()))
 			return false;
 		
+		if (TvTConfig.TVT_PLAYER_CAN_BE_KILLED_IN_PZ && target.getActingPlayer() != null && TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(target.getActingPlayer().getObjectId()))
+			return false;
+		
 		// Summon or player check.
 		if (attacker.getActingPlayer() != null && attacker.getActingPlayer().getAccessLevel().allowPeaceAttack())
 			return false;
@@ -5971,9 +5991,7 @@ public abstract class Creature extends WorldObject
 	
 	/** The _pos checker ctf. */
 	public Future<?> _posCheckerCTF = null;
-	
-	public boolean _inEventTvT = false;
-	public String _teamNameTvT, _originalTitleTvT;
+
 	public String _originalTitlePvP;
 	private boolean inArenaEvent = false;
 	

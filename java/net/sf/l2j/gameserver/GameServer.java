@@ -1,19 +1,9 @@
 package net.sf.l2j.gameserver;
 
-
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
-import java.lang.management.RuntimeMXBean;
-import java.lang.management.ThreadMXBean;
 import java.net.InetAddress;
-import java.text.DecimalFormat;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
 
 import net.sf.l2j.Config;
@@ -27,7 +17,6 @@ import net.sf.l2j.commons.mmocore.SelectorThread;
 import net.sf.l2j.commons.util.SysUtil;
 import net.sf.l2j.events.ArenaTask;
 import net.sf.l2j.events.manager.CTFEventManager;
-import net.sf.l2j.events.manager.TvTEventManager;
 import net.sf.l2j.events.pvpevent.PvPEventManager;
 import net.sf.l2j.gameserver.communitybbs.Manager.ForumsBBSManager;
 import net.sf.l2j.gameserver.data.BufferTable;
@@ -147,6 +136,10 @@ import Dev.Event.ChampionInvade.InitialChampionInvade;
 import Dev.Event.DeathMatch.DMConfig;
 import Dev.Event.DeathMatch.DMManager;
 import Dev.Event.SoloBossEvent.InitialSoloBossEvent;
+import Dev.Event.Tournament.InstanceManager;
+import Dev.Event.TvT.TvTAreasLoader;
+import Dev.Event.TvT.TvTConfig;
+import Dev.Event.TvT.TvTManager;
 import Dev.Event.TvTFortress.FOSConfig;
 import Dev.Event.TvTFortress.FOSManager;
 import Dev.InstanceFarm.TimeInstanceManager;
@@ -169,23 +162,27 @@ public class GameServer
 	
 	private static GameServer _gameServer;
 	
+//	public static void main(String[] args) throws Exception
+//	{
+//		// Cria o scheduler como membro estático da classe
+//		scheduler = Executors.newScheduledThreadPool(1);
+//		
+//		scheduler.scheduleAtFixedRate(() -> {
+//			printStatus();
+//		}, 0, 1, TimeUnit.MINUTES);
+//		_gameServer = new GameServer();
+//		
+//		// Se quiser registrar shutdown hook pra fechar o scheduler:
+//		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+//			if (scheduler != null && !scheduler.isShutdown())
+//			{
+//				scheduler.shutdown();
+//			}
+//		}));
+//	}
 	public static void main(String[] args) throws Exception
 	{
-		// Cria o scheduler como membro estático da classe
-		scheduler = Executors.newScheduledThreadPool(1);
-		
-		scheduler.scheduleAtFixedRate(() -> {
-			printStatus();
-		}, 0, 1, TimeUnit.MINUTES);
 		_gameServer = new GameServer();
-		
-		// Se quiser registrar shutdown hook pra fechar o scheduler:
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			if (scheduler != null && !scheduler.isShutdown())
-			{
-				scheduler.shutdown();
-			}
-		}));
 	}
 	
 	public GameServer() throws Exception
@@ -231,6 +228,9 @@ public class GameServer
 		TimeInstanceManager.getInstance();
 		TimedItemManager.getInstance();
 		AuctionTableCommunity.getInstance();
+		
+		StringUtil.printSection("Instance Manager");
+		InstanceManager.getInstance();
 		
 		StringUtil.printSection("Skills");
 		SkillTable.getInstance();
@@ -377,18 +377,12 @@ public class GameServer
 		MonsterRace.getInstance();
 		
 		if (Config.PCB_ENABLE)
-			ThreadPool.scheduleAtFixedRate(PcPoint.getInstance(), Config.PCB_INTERVAL * 1000, Config.PCB_INTERVAL * 1000);
-		
-		if (Config.TVT_EVENT_ENABLED)
 		{
-			TvTEventManager.getInstance().startTvTEventRegistration();
-			TvTEventManager.getInstance().StartCalculationOfNextEventTime();
-			
-			if (Config.TVT_EVENT_ENABLED)
-				LOGGER.info("TVT Event is enabled.");
+			ThreadPool.scheduleAtFixedRate(PcPoint.getInstance(), Config.PCB_INTERVAL * 1000, Config.PCB_INTERVAL * 1000);	
 		}
-		else
-			LOGGER.info("TvT Event is disabled.");
+			
+		TvTAreasLoader.load();
+		//tvt
 		
 		if ((Config.SOLO_BOSS_EVENT))
 		{
@@ -399,7 +393,8 @@ public class GameServer
 		{
 			LOGGER.info("Solo Boss Event is disabled.");
 		}
-		
+		TvTConfig.init();
+		TvTManager.getInstance();
 		if (Config.CTF_EVENT_ENABLED)
 		{
 			CTFEventManager.getInstance().startCTFEventRegistration();
@@ -461,8 +456,14 @@ public class GameServer
 		{
 			LOGGER.info("Champion Invade Event is disabled.");
 		}
-		StringUtil.printSection("PVP Event Zone");
-		PvPEventManager.getInstance();
+		if(Config.PVP_EVENT_ENABLED)
+		{
+			PvPEventManager.getInstance();
+		}
+		else
+		{
+			LOGGER.info("PvP Event disabled.");
+		}
 
 		StringUtil.printSection("Others");
 		
@@ -595,28 +596,4 @@ public class GameServer
 	{
 		return _selectorThread;
 	}
-	private static ScheduledExecutorService scheduler;
-	public static void printStatus()
-		{
-		    OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
-		    RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
-		    ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
-
-		    Runtime runtime = Runtime.getRuntime();
-
-		    long uptime = runtimeBean.getUptime();
-		    long usedMemory = runtime.totalMemory() - runtime.freeMemory();
-		    long maxMemory = runtime.maxMemory();
-		    int threadCount = threadBean.getThreadCount();
-		    DecimalFormat df = new DecimalFormat("#.##");
-
-		    System.out.println("========= [SERVER STATUS] =========");
-		    System.out.println("Uptime: " + (uptime / 1000) + "s");
-		    System.out.println("CPU cores: " + osBean.getAvailableProcessors());
-		    System.out.println("System Load: " + df.format(osBean.getSystemLoadAverage()));
-		    System.out.println("Heap Memory: " + (usedMemory / 1024 / 1024) + " MB / " + (maxMemory / 1024 / 1024) + " MB");
-		    System.out.println("Threads: " + threadCount);
-		    System.out.println("Players Online: " + World.getInstance().getPlayers().size());
-		    System.out.println("===================================");
-		}
 }

@@ -1,7 +1,8 @@
 package net.sf.l2j.gameserver.network.serverpackets;
 
+import net.sf.l2j.Config;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
+import net.sf.l2j.events.pvpevent.PvPEvent;
 import net.sf.l2j.gameserver.data.NpcTable;
 import net.sf.l2j.gameserver.instancemanager.AioManager;
 import net.sf.l2j.gameserver.instancemanager.CursedWeaponsManager;
@@ -13,8 +14,8 @@ import net.sf.l2j.gameserver.model.location.Location;
 import net.sf.l2j.gameserver.model.zone.ZoneId;
 import net.sf.l2j.gameserver.skills.AbnormalEffect;
 
-import net.sf.l2j.Config;
-
+import Dev.Event.TvT.TvTAreasLoader;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSConfig;
 import Dev.Event.TvTFortress.FOSEvent;
 
@@ -46,15 +47,15 @@ public class CharInfo extends L2GameServerPacket
 		boolean tvt = false;
 		boolean ctf = false;
 		
-		if (_activeChar._inEventTvT)
-		{
-			Player tmp = getClient().getActiveChar();
-			if (tmp != null)
-			{
-				if ((TvT.is_started() || TvT.is_teleport()) && tmp._inEventTvT && !_activeChar._teamNameTvT.equals(tmp._teamNameTvT))
-					tvt = true;
-			}
-		}
+//		if (_activeChar._inEventTvT)
+//		{
+//			Player tmp = getClient().getActiveChar();
+//			if (tmp != null)
+//			{
+//				if ((TvT.is_started() || TvT.is_teleport()) && tmp._inEventTvT && !_activeChar._teamNameTvT.equals(tmp._teamNameTvT))
+//					tvt = true;
+//			}
+//		}
 		
 		if (_activeChar._inEventCTF)
 		{
@@ -108,9 +109,27 @@ public class CharInfo extends L2GameServerPacket
 		{
 			writeS(Config.ZONE_NAME);
 		}
+		else if(_activeChar.isInsideZone(ZoneId.PVP_CUSTOM) && Config.ENABLE_NAME_TITLE_PVPEVENT && PvPEvent.getInstance().isActive())
+		{
+			writeS(Config.STRING_NAME_PVPEVENT);
+		}
 		else if (_activeChar.isInDMEvent())
 		{
 			writeS("Enemy");
+		}
+		else if (_activeChar.isInTVTEvent())
+		{
+		    byte playerTeamId = TvTEvent.getParticipantTeamId(_activeChar.getObjectId());
+
+		    TvTAreasLoader.Area chosenArea = TvTEvent.getChosenArea(); // acesso à área atual
+		    String team1Name = (chosenArea != null) ? chosenArea.team1Name : "Team 1";
+		    String team2Name = (chosenArea != null) ? chosenArea.team2Name : "Team 2";
+
+		    if (playerTeamId == 0)
+		        writeS("Team " + team2Name); // troca aqui
+		    else if (playerTeamId == 1)
+		        writeS("Team " + team1Name);
+
 		}
 		else if (_activeChar.isInFOSEvent())
 		{
@@ -272,6 +291,31 @@ public class CharInfo extends L2GameServerPacket
 		{
 			writeS("Kills: " + _activeChar.getDMPointScore());
 		}
+		else if (_activeChar.isInTVTEvent())
+		{
+			byte playerTeamId = TvTEvent.getParticipantTeamId(_activeChar.getObjectId());
+			
+			if (playerTeamId == 0)
+				writeS("Kills: " + _activeChar.getPointScore());
+			
+			if (playerTeamId == 1)
+				writeS("Kills: " + _activeChar.getPointScore());
+		}
+		else if (_activeChar.isInsideZone(ZoneId.PVP_CUSTOM) && Config.ENABLE_NAME_TITLE_PVPEVENT && PvPEvent.getInstance().isActive())
+		{
+		    int rank = PvPEvent.getPlayerRank(_activeChar);
+		    int kills = PvPEvent.getEventPvp(_activeChar);
+
+		    if (rank > 0 && kills > 0)
+		    {
+		        String title = "Rank - " + rank + " | Kills - " + kills;
+		        writeS(title); // Exibe visualmente sem alterar o título real
+		    }
+		    else
+		    {
+		        writeS(_activeChar.getTitle()); // Exibe o título original
+		    }
+		}
 		else if (_activeChar.isInFOSEvent())
 		{
 			byte playerTeamId = FOSEvent.getParticipantTeamId(_activeChar.getObjectId());
@@ -285,7 +329,7 @@ public class CharInfo extends L2GameServerPacket
 		else
 			writeS(_activeChar.getTitle());
 		
-		if (((TvT.is_started() || TvT.is_teleport()) && _activeChar._inEventTvT) || ((CTF.is_started() || CTF.is_teleport()) && _activeChar._inEventCTF)  || _activeChar.isInsideZone(ZoneId.PVP_CUSTOM) || _activeChar.isInFOSEvent())
+		if ((_activeChar.isInTVTEvent()) || ((CTF.is_started() || CTF.is_teleport()) && _activeChar._inEventCTF)  || Config.BLOCK_CREST_PVPEVENT && _activeChar.isInsideZone(ZoneId.PVP_CUSTOM) || _activeChar.isInFOSEvent())
 		{
 			writeD(0);
 			writeD(0);
@@ -359,10 +403,11 @@ public class CharInfo extends L2GameServerPacket
 		writeD(_activeChar.getClanCrestLargeId());
 		writeC(_activeChar.isNoble() ? 1 : 0); // Symbol on char menu ctrl+I
 		
-		if (_activeChar.isHero() && (((TvT.is_started() || TvT.is_teleport()) && _activeChar._inEventTvT) || ((CTF.is_started() || CTF.is_teleport()) && _activeChar._inEventCTF)))
-			writeC(0x00);
-		else
-			writeC((_activeChar.isHero() || (_activeChar.isGM() && Config.GM_HERO_AURA)) ? 1 : 0); // Hero Aura
+//		if (_activeChar.isHero() && (((TvT.is_started() || TvT.is_teleport()) && _activeChar._inEventTvT) || ((CTF.is_started() || CTF.is_teleport()) && _activeChar._inEventCTF)))
+//			writeC(0x00);
+//		else
+//			writeC((_activeChar.isHero() || (_activeChar.isGM() && Config.GM_HERO_AURA)) ? 1 : 0); // Hero Aura
+		writeC((_activeChar.isHero() || (_activeChar.isGM() && Config.GM_HERO_AURA)) ? 1 : 0); // Hero Aura
 		
 		writeC(_activeChar.isFishing() ? 1 : 0); // 0x01: Fishing Mode (Cant be undone by setting back to 0)
 		
@@ -387,6 +432,16 @@ public class CharInfo extends L2GameServerPacket
 		else if (_activeChar.isInFOSEvent())
 		{
 			byte playerTeamId = FOSEvent.getParticipantTeamId(_activeChar.getObjectId());
+			
+			if (playerTeamId == 0)
+				writeD(0xFF3500); // Blue
+			
+			if (playerTeamId == 1)
+				writeD(0x0000F8); // Red
+		}
+		else if (_activeChar.isInTVTEvent())
+		{
+			byte playerTeamId = TvTEvent.getParticipantTeamId(_activeChar.getObjectId());
 			
 			if (playerTeamId == 0)
 				writeD(0xFF3500); // Blue

@@ -1,5 +1,14 @@
 package Dev.Event.BossEvent;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import net.sf.l2j.Config;
+import net.sf.l2j.commons.random.Rnd;
+import net.sf.l2j.commons.util.StringUtil;
 import net.sf.l2j.gameserver.data.DoorTable;
 import net.sf.l2j.gameserver.data.ItemTable;
 import net.sf.l2j.gameserver.data.NpcTable;
@@ -21,18 +30,8 @@ import net.sf.l2j.gameserver.network.serverpackets.MagicSkillUse;
 import net.sf.l2j.gameserver.network.serverpackets.NpcHtmlMessage;
 import net.sf.l2j.gameserver.network.serverpackets.StatusUpdate;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import net.sf.l2j.commons.random.Rnd;
-import net.sf.l2j.commons.util.StringUtil;
-
-import net.sf.l2j.Config;
-
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 public class KTBEvent
@@ -682,7 +681,7 @@ public class KTBEvent
 				activeChar.sendMessage("AIO charactes are not allowed to participate in events.");
 				return;
 			}
-			else if (activeChar._inEventTvT)
+			else if (TvTEvent.isPlayerParticipant(activeChar.getObjectId()))
 			{
 				activeChar.sendMessage("You already participated in another event!");
 				return;

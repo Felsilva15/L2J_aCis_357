@@ -558,7 +558,7 @@ public class RaidBoss extends Monster
 	    for (RewardHolder reward : rewards) {
 	        if (Rnd.get(100) <= reward.getRewardChance()) {
 	            // Define a quantidade de recompensa
-	            int quantity = Rnd.get(reward.getMin(), reward.getMax());
+	            int quantity = Rnd.get(reward.getRewardMin(), reward.getRewardMax());
 
 	            // Se o jogador for VIP, aplica o VIP_DROP_RATE
 	            if (player.isVip()) {

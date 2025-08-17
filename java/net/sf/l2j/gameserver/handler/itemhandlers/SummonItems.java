@@ -1,7 +1,11 @@
 package net.sf.l2j.gameserver.handler.itemhandlers;
 
+import java.util.logging.Level;
+
+import net.sf.l2j.Config;
+import net.sf.l2j.commons.concurrent.ThreadPool;
+import net.sf.l2j.commons.random.Rnd;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.data.NpcTable;
 import net.sf.l2j.gameserver.data.xml.SummonItemData;
 import net.sf.l2j.gameserver.handler.IItemHandler;
@@ -27,15 +31,9 @@ import net.sf.l2j.gameserver.network.serverpackets.SetupGauge.GaugeColor;
 import net.sf.l2j.gameserver.network.serverpackets.SystemMessage;
 import net.sf.l2j.gameserver.util.Broadcast;
 
-import java.util.logging.Level;
-
-import net.sf.l2j.commons.random.Rnd;
-
-import net.sf.l2j.Config;
-import net.sf.l2j.commons.concurrent.ThreadPool;
-
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 public class SummonItems implements IItemHandler
@@ -53,7 +51,7 @@ public class SummonItems implements IItemHandler
 			activeChar.sendPacket(SystemMessageId.CANT_MOVE_SITTING);
 			return;
 		}
-		if (!DMEvent.onItemSummon(playable.getObjectId()) || !DMEvent.onItemSummon(playable.getObjectId()))
+		if (!DMEvent.onItemSummon(playable.getObjectId()) || !DMEvent.onItemSummon(playable.getObjectId()) || TvTEvent.onItemSummon(playable.getObjectId()) )
  			return;
 		if (activeChar.isInObserverMode())
 			return;
@@ -82,12 +80,6 @@ public class SummonItems implements IItemHandler
 		if (!DMEvent.onItemSummon(playable.getObjectId()))
 		{
 			activeChar.sendMessage("You can not do this in DM Event");
-			return;
-		}
-		if (TvT.is_started() && activeChar._inEventTvT && !Config.TVT_ALLOW_SUMMON)
-		{
-			final ActionFailed af = ActionFailed.STATIC_PACKET;
-			activeChar.sendPacket(af);
 			return;
 		}
 		if (!FOSEvent.onItemSummon(playable.getObjectId()))

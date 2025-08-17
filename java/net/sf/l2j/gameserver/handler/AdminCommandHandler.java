@@ -1,6 +1,7 @@
 package net.sf.l2j.gameserver.handler;
 
-
+import java.util.HashMap;
+import java.util.Map;
 
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminAdmin;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminAiox;
@@ -52,6 +53,7 @@ import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminPForge;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminPetition;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminPledge;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminPolymorph;
+import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminPvPEvent;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminRecallAll;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminRes;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminRideWyvern;
@@ -63,18 +65,15 @@ import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminSkill;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminSpawn;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminTarget;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminTeleport;
-import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminTvTEngine;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminVip;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminZone;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminZoneCreation;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import Dev.Event.BossEvent.AdminKTBEvent;
 import Dev.Event.ChampionInvade.AdminChampionInvade;
 import Dev.Event.DeathMatch.AdminDMEvent;
 import Dev.Event.SoloBossEvent.AdminSoloBoss;
+import Dev.Event.TvT.AdminTvTEvent;
 import Dev.Event.TvTFortress.AdminFOSEvent;
 
 public class AdminCommandHandler
@@ -87,7 +86,9 @@ public class AdminCommandHandler
 	}
 	
 	protected AdminCommandHandler()
-	{
+	{	
+		registerAdminCommandHandler(new AdminTvTEvent());
+		registerAdminCommandHandler(new AdminPvPEvent());
 		registerAdminCommandHandler(new AdminFOSEvent());
 		registerAdminCommandHandler(new AdminChampionInvade());
 		registerAdminCommandHandler(new AdminDeleteItemAll());
@@ -154,7 +155,6 @@ public class AdminCommandHandler
 		registerAdminCommandHandler(new AdminSendDonate());
 		registerAdminCommandHandler(new AdminAugment());
 		registerAdminCommandHandler(new AdminCustom());
-		registerAdminCommandHandler(new AdminTvTEngine());
 		registerAdminCommandHandler(new AdminCTFEngine());
 		registerAdminCommandHandler(new AdminGiran());
 		registerAdminCommandHandler(new AdminChatManager());

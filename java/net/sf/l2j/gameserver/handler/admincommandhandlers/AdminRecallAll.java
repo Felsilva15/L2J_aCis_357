@@ -14,6 +14,8 @@
  */
 package net.sf.l2j.gameserver.handler.admincommandhandlers;
 
+import net.sf.l2j.commons.concurrent.ThreadPool;
+import net.sf.l2j.commons.math.MathUtil;
 import net.sf.l2j.gameserver.handler.IAdminCommandHandler;
 import net.sf.l2j.gameserver.model.World;
 import net.sf.l2j.gameserver.model.actor.instance.Player;
@@ -21,12 +23,9 @@ import net.sf.l2j.gameserver.model.base.ClassId;
 import net.sf.l2j.gameserver.network.SystemMessageId;
 import net.sf.l2j.gameserver.network.serverpackets.ConfirmDlg;
 
-import net.sf.l2j.commons.math.MathUtil;
-
-import net.sf.l2j.commons.concurrent.ThreadPool;
-
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 /**
@@ -59,7 +58,7 @@ public class AdminRecallAll implements IAdminCommandHandler
 				{
 					final boolean bishop = (player.getClassId() == ClassId.BISHOP || player.getClassId() == ClassId.CARDINAL || player.getClassId() == ClassId.SHILLIEN_ELDER || player.getClassId() == ClassId.SHILLIEN_SAINT || player.getClassId() == ClassId.EVAS_SAINT || player.getClassId() == ClassId.ELVEN_ELDER);
 					
-					if (player.isOff() || player.isOffShop() || FOSEvent.isPlayerParticipant(player.getObjectId()) && FOSEvent.isStarted() || DMEvent.isPlayerParticipant(player.getObjectId()) && DMEvent.isStarted() || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted()  || player.isAlikeDead() || player._inEventTvT || player.isAio() || player.isAioEterno() || player._inEventCTF || player.isInArenaEvent() || player.isArenaProtection() || player.isOlympiadProtection() || player.isPhantom() || player.isInStoreMode() || player.isRooted() || player.getKarma() > 0 || player.isInOlympiadMode() || player.isOlympiadProtection() || player.isFestivalParticipant() || bishop)
+					if (player.isOff() || TvTEvent.isPlayerParticipant(player.getObjectId()) && TvTEvent.isStarted() || player.isOffShop() || FOSEvent.isPlayerParticipant(player.getObjectId()) && FOSEvent.isStarted() || DMEvent.isPlayerParticipant(player.getObjectId()) && DMEvent.isStarted() || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted()  || player.isAlikeDead() || player.isAio() || player.isAioEterno() || player._inEventCTF || player.isInArenaEvent() || player.isArenaProtection() || player.isOlympiadProtection() || player.isPhantom() || player.isInStoreMode() || player.isRooted() || player.getKarma() > 0 || player.isInOlympiadMode() || player.isOlympiadProtection() || player.isFestivalParticipant() || bishop)
 						continue;
 					
 					if (!MathUtil.checkIfInRange(0, activeChar, player, false))

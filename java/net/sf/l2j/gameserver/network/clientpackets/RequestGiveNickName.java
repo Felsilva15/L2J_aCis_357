@@ -1,7 +1,6 @@
 package net.sf.l2j.gameserver.network.clientpackets;
 
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.model.actor.instance.Player;
 import net.sf.l2j.gameserver.model.pledge.Clan;
 import net.sf.l2j.gameserver.model.pledge.ClanMember;
@@ -41,7 +40,7 @@ public class RequestGiveNickName extends L2GameClientPacket
 //			return;
 //		}
 		
-		if ((TvT.is_started() && activeChar._inEventTvT) ||(CTF.is_started() && activeChar._inEventCTF) || activeChar.isInArenaEvent())
+		if ((CTF.is_started() && activeChar._inEventCTF) || activeChar.isInArenaEvent())
 		{
 			activeChar.sendPacket(SystemMessageId.YOU_ARE_NOT_AUTHORIZED_TO_DO_THAT);
 			return;

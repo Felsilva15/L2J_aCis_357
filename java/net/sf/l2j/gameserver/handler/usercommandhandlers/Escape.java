@@ -1,7 +1,6 @@
 package net.sf.l2j.gameserver.handler.usercommandhandlers;
 
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.data.SkillTable;
 import net.sf.l2j.gameserver.handler.IUserCommandHandler;
 import net.sf.l2j.gameserver.model.actor.instance.Player;
@@ -11,6 +10,7 @@ import net.sf.l2j.gameserver.network.serverpackets.PlaySound;
 
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 public class Escape implements IUserCommandHandler
@@ -33,9 +33,14 @@ public class Escape implements IUserCommandHandler
 			activeChar.sendMessage("Your current state doesn't allow you to use the /unstuck command.");
 			return false;
 		}
-		if ((TvT.is_started() && activeChar._inEventTvT) || FOSEvent.isPlayerParticipant(activeChar.getObjectId()) && FOSEvent.isStarted() || (CTF.is_started() && activeChar._inEventCTF) || KTBEvent.isPlayerParticipant(activeChar.getObjectId()) && KTBEvent.isStarted() || DMEvent.isPlayerParticipant(activeChar.getObjectId()) && DMEvent.isStarted())
+		if (KTBEvent.isPlayerParticipant(activeChar.getObjectId()) && KTBEvent.isStarted() || FOSEvent.isPlayerParticipant(activeChar.getObjectId()) && FOSEvent.isStarted() || (CTF.is_started() && activeChar._inEventCTF) || KTBEvent.isPlayerParticipant(activeChar.getObjectId()) && KTBEvent.isStarted() || DMEvent.isPlayerParticipant(activeChar.getObjectId()) && DMEvent.isStarted())
 		{
 			activeChar.sendMessage("You may not use an escape skill in event.");
+			return false;
+		}
+		if (!TvTEvent.onEscapeUse(activeChar.getObjectId()))
+		{
+			activeChar.sendMessage("Your current state doesn't allow you to use the /unstuck command.");
 			return false;
 		}
 		if (!FOSEvent.onEscapeUse(activeChar.getObjectId()))

@@ -36,7 +36,9 @@ import net.sf.l2j.gameserver.network.SystemMessageId;
 
 import Dev.Event.BossEvent.KTBConfig;
 import Dev.Event.DeathMatch.DMConfig;
+import Dev.Event.TvT.TvTConfig;
 import Dev.Event.TvTFortress.FOSConfig;
+import hwid.HwidConfig;
 import phantom.PhantomNameManager;
 import phantom.PhantomTitleManager;
 import phantom.Phantom_Attack;
@@ -191,8 +193,8 @@ public class AdminAdmin implements IAdminCommandHandler
 					}
 					else if (type.startsWith("config"))
 					{
-						
-	 					
+						HwidConfig.load();
+						TvTConfig.init();
 						DMConfig.init();
 						KTBConfig.init();
 						FOSConfig.init();

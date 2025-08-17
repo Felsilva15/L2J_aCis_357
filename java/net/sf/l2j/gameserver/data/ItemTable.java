@@ -317,4 +317,8 @@ public class ItemTable
 	{
 		return _allTemplates;
 	}
+	public int getArraySize()
+	{
+		return _allTemplates.length;
+	}
 }

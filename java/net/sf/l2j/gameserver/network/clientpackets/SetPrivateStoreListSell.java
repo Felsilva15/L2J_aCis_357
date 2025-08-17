@@ -65,7 +65,7 @@ public final class SetPrivateStoreListSell extends L2GameClientPacket
 		}
 		
 		// Check if player is in Event
-		if (player._inEventTvT || player._inEventCTF || player.isArenaProtection())
+		if (player._inEventCTF || player.isArenaProtection())
 		{
 			player.sendPacket(SystemMessageId.NO_PRIVATE_STORE_HERE);
 			player.sendPacket(new PrivateStoreManageListSell(player, _packageSale));

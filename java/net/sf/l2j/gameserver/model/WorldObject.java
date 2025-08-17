@@ -6,18 +6,21 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import net.sf.l2j.commons.math.MathUtil;
-
 import net.sf.l2j.gameserver.data.ItemTable;
 import net.sf.l2j.gameserver.data.NpcTable;
 import net.sf.l2j.gameserver.idfactory.IdFactory;
 import net.sf.l2j.gameserver.model.actor.Creature;
 import net.sf.l2j.gameserver.model.actor.Npc;
+import net.sf.l2j.gameserver.model.actor.instance.Fence;
 import net.sf.l2j.gameserver.model.actor.instance.Player;
 import net.sf.l2j.gameserver.model.actor.template.NpcTemplate;
 import net.sf.l2j.gameserver.model.location.Location;
 import net.sf.l2j.gameserver.model.location.SpawnLocation;
 import net.sf.l2j.gameserver.model.zone.ZoneId;
 import net.sf.l2j.gameserver.network.serverpackets.ActionFailed;
+
+import Dev.Event.Tournament.Instance;
+import Dev.Event.Tournament.InstanceManager;
 
 /**
  * Mother class of all interactive objects in the world (PC, NPC, Item...)
@@ -373,7 +376,11 @@ public abstract class WorldObject
 					region.setActive(false);
 			}
 		}
-		
+		for (WorldObject object : getDifferentInstanceObjects())
+		{
+			object.removeKnownObject(this);
+			removeKnownObject(object);
+		}
 		// For every new surrounding area NOT SHARED with old surrounding areas.
 		for (WorldRegion region : newAreas)
 		{
@@ -382,7 +389,7 @@ public abstract class WorldObject
 				// Update all objects.
 				for (WorldObject obj : region.getObjects())
 				{
-					if (obj == this)
+					if (obj == this || obj.getInstance() == null || getInstance() == null || obj.getInstance().getId() != getInstance().getId())
 						continue;
 					
 					obj.addKnownObject(this);
@@ -397,7 +404,27 @@ public abstract class WorldObject
 		
 		_region = newRegion;
 	}
-	
+	private final List<WorldObject> getDifferentInstanceObjects()
+	{
+		final WorldRegion region = _region;
+		if (region == null)
+			return Collections.emptyList();
+		
+		final List<WorldObject> result = new ArrayList<>();
+		
+		for (WorldRegion reg : region.getSurroundingRegions())
+		{
+			for (WorldObject obj : reg.getObjects())
+			{
+				if (obj == this || obj.getInstance() == null || getInstance() == null || obj.getInstance().getId() == getInstance().getId() || obj instanceof Fence)
+				    continue;
+				    
+				result.add(obj);
+			}
+		}
+		
+		return result;
+	}
 	/**
 	 * Add object to known list.
 	 * @param object : {@link WorldObject} to be added.
@@ -436,6 +463,9 @@ public abstract class WorldObject
 				if (obj == this || !type.isAssignableFrom(obj.getClass()))
 					continue;
 				
+				if (obj.getInstance().getId() != getInstance().getId() && !(obj instanceof Fence))
+					continue;
+				
 				result.add((A) obj);
 			}
 		}
@@ -466,6 +496,9 @@ public abstract class WorldObject
 				if (obj == this || !type.isAssignableFrom(obj.getClass()) || !MathUtil.checkIfInRange(radius, this, obj, true))
 					continue;
 				
+				if (obj.getInstance().getId() != getInstance().getId() && !(obj instanceof Fence))
+					continue;
+				
 				result.add((A) obj);
 			}
 		}
@@ -479,5 +512,22 @@ public abstract class WorldObject
 	public boolean isAgathion()
 	{
 		return false;
+	}
+	/** instance system */
+	private Instance _instance = InstanceManager.getInstance().getInstance(0);
+	
+	public void setInstance(Instance instance, boolean silent)
+	{
+		_instance = instance;
+		
+		if(!silent)
+		{
+			decayMe();
+			spawnMe();
+		}
+	}
+	public Instance getInstance()
+	{
+		return _instance;
 	}
 }

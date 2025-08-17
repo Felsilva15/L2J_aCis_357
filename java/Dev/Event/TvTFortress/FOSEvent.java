@@ -1,5 +1,14 @@
 package Dev.Event.TvTFortress;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import net.sf.l2j.Config;
+import net.sf.l2j.commons.random.Rnd;
 import net.sf.l2j.gameserver.data.DoorTable;
 import net.sf.l2j.gameserver.data.NpcTable;
 import net.sf.l2j.gameserver.data.SkillTable;
@@ -28,19 +37,9 @@ import net.sf.l2j.gameserver.network.serverpackets.MagicSkillUse;
 import net.sf.l2j.gameserver.network.serverpackets.NpcHtmlMessage;
 import net.sf.l2j.gameserver.network.serverpackets.StatusUpdate;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import net.sf.l2j.commons.random.Rnd;
-
-import net.sf.l2j.Config;
-
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 
 public class FOSEvent
 {
@@ -353,14 +352,14 @@ public class FOSEvent
 					if (playerInstance.isVip())
 					{
 						if (reward.getRewardId() == 5556)
-							playerInstance.addItem("FOS Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), playerInstance, true);
+							playerInstance.addItem("FOS Reward", reward.getRewardId(), (int) (Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP), playerInstance, true);
 						else if (reward.getRewardId() == 5556)
-							playerInstance.addItem("FOS Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), playerInstance, true);
+							playerInstance.addItem("FOS Reward", reward.getRewardId(), (int) (Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP), playerInstance, true);
 						else
-							playerInstance.addItem("FOS Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), playerInstance, true);
+							playerInstance.addItem("FOS Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), playerInstance, true);
 					}
     				else
-    					playerInstance.addItem("FOS Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), playerInstance, true);
+    					playerInstance.addItem("FOS Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), playerInstance, true);
     			}
     		}
 
@@ -390,14 +389,14 @@ public class FOSEvent
 					if (playerInstance.getInventory().getItemByItemId(9594) != null || playerInstance.getInventory().getItemByItemId(9595) != null || playerInstance.getInventory().getItemByItemId(9596) != null)
 					{
 						if (reward.getRewardId() == 5556)
-							playerInstance.addItem("FOS Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), playerInstance, true);
+							playerInstance.addItem("FOS Reward", reward.getRewardId(), (int) (Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP), playerInstance, true);
 						else if (reward.getRewardId() == 5556)
-							playerInstance.addItem("FOS Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), playerInstance, true);
+							playerInstance.addItem("FOS Reward", reward.getRewardId(), (int) (Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP), playerInstance, true);
 						else
-							playerInstance.addItem("FOS Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), playerInstance, true);
+							playerInstance.addItem("FOS Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), playerInstance, true);
 					}
     				else
-    					playerInstance.addItem("FOS Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), playerInstance, true);
+    					playerInstance.addItem("FOS Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), playerInstance, true);
     			}
     		}
 
@@ -745,17 +744,17 @@ public class FOSEvent
 				playerInstance.sendMessage("You already participated in another event!");
 				return;
 			}
-			else if (playerInstance._inEventTvT)
-			{
-				playerInstance.sendMessage("You already participated in another event!");
-				return;
-			}
 			else if (DMEvent.isPlayerParticipant(playerInstance.getObjectId()))
 			{
 				playerInstance.sendMessage("You already participated in another event!");
 				return;
 			}
 			else if (KTBEvent.isPlayerParticipant(playerInstance.getObjectId()))
+			{
+				playerInstance.sendMessage("You already participated in another event!");
+				return;
+			}
+			else if (TvTEvent.isPlayerParticipant(playerInstance.getObjectId()))
 			{
 				playerInstance.sendMessage("You already participated in another event!");
 				return;

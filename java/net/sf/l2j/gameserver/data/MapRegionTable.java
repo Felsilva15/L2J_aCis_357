@@ -1,5 +1,10 @@
 package net.sf.l2j.gameserver.data;
 
+import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import net.sf.l2j.Config;
 import net.sf.l2j.gameserver.instancemanager.CastleManager;
 import net.sf.l2j.gameserver.instancemanager.ClanHallManager;
 import net.sf.l2j.gameserver.instancemanager.ZoneManager;
@@ -16,16 +21,12 @@ import net.sf.l2j.gameserver.model.zone.ZoneId;
 import net.sf.l2j.gameserver.model.zone.type.L2ArenaZone;
 import net.sf.l2j.gameserver.model.zone.type.L2ClanHallZone;
 import net.sf.l2j.gameserver.model.zone.type.L2PartyZone;
-import net.sf.l2j.gameserver.model.zone.type.L2PvPZone;
+import net.sf.l2j.gameserver.model.zone.type.L2PvPEventZone;
 import net.sf.l2j.gameserver.model.zone.type.L2RaidZone;
 import net.sf.l2j.gameserver.model.zone.type.L2RaidZoneNoFlag;
 import net.sf.l2j.gameserver.model.zone.type.L2SoloZone;
 import net.sf.l2j.gameserver.model.zone.type.L2TownZone;
 import net.sf.l2j.gameserver.xmlfactory.XMLDocumentFactory;
-
-import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -292,11 +293,14 @@ public class MapRegionTable
 		final L2ArenaZone arena = ZoneManager.getInstance().getZone(player, L2ArenaZone.class);
 		if (arena != null)
 			return arena.getSpawnLoc();
-	
-		// Check if player is in PvP Zone.
-		final L2PvPZone pvpZone = ZoneManager.getInstance().getZone(player, L2PvPZone.class);
-		if (pvpZone != null)
-			return pvpZone.getSpawnLoc();
+		
+		if(Config.PVP_EVENT_ENABLED)
+		{
+			// Check if player is in PvP Zone.
+			final L2PvPEventZone pvpZone = ZoneManager.getInstance().getZone(player, L2PvPEventZone.class);
+			if (pvpZone != null)
+				return pvpZone.getSpawnLoc();
+		}
 		
 		// Checking if in Party Zerg Zone
 		L2PartyZone flag = ZoneManager.getPartyZone(player);

@@ -1,7 +1,7 @@
 package net.sf.l2j.gameserver.network.serverpackets;
 
+import net.sf.l2j.Config;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.instancemanager.CastleManager;
 import net.sf.l2j.gameserver.model.actor.Attackable;
 import net.sf.l2j.gameserver.model.actor.Creature;
@@ -10,10 +10,9 @@ import net.sf.l2j.gameserver.model.entity.Siege;
 import net.sf.l2j.gameserver.model.entity.Siege.SiegeSide;
 import net.sf.l2j.gameserver.model.pledge.Clan;
 
-import net.sf.l2j.Config;
-
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 public class Die extends L2GameServerPacket
@@ -38,7 +37,7 @@ public class Die extends L2GameServerPacket
 			Player player = (Player) cha;
 			_allowFixedRes = player.getAccessLevel().allowFixedRes();
 			_clan = player.getClan();
-			_canEvent = !(((TvT.is_started() || TvT.is_teleport()) && player._inEventTvT) || ((CTF.is_started() || CTF.is_teleport()) && player._inEventCTF) || cha.isInArenaEvent() || KTBEvent.isStarted() && KTBEvent.isPlayerParticipant(_charObjId) || DMEvent.isStarted() && DMEvent.isPlayerParticipant(_charObjId) || FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(_charObjId));
+			_canEvent = !((TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(_charObjId)) || ((CTF.is_started() || CTF.is_teleport()) && player._inEventCTF) || cha.isInArenaEvent() || KTBEvent.isStarted() && KTBEvent.isPlayerParticipant(_charObjId) || DMEvent.isStarted() && DMEvent.isPlayerParticipant(_charObjId) || FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(_charObjId));
 			
 		}
 		else if (cha instanceof Attackable)

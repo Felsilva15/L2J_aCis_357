@@ -136,7 +136,7 @@ public class TimeInstanceManager
 			RewardHolder reward = Config.TIME_INSTANCE_DROP_ITEMS_IDS.get(Rnd.get(Config.TIME_INSTANCE_DROP_ITEMS_IDS.size()));
 			
 			if (Rnd.get(100) <= reward.getRewardChance())
-				player.addItem("TI", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), player, true);
+				player.addItem("TI", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), player, true);
 		}
 	}
 	

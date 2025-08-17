@@ -1,8 +1,5 @@
 package net.sf.l2j.gameserver.model.holder;
 
-/**
- * @author MeGaPacK
- */
 public class RewardHolder
 {
 	private int _id;
@@ -12,28 +9,28 @@ public class RewardHolder
 	
 	/**
 	 * @param rewardId
-	 * @param min 
-	 * @param max 
+	 * @param rewardMin
+	 * @param rewardMax
 	 */
-	public RewardHolder(int rewardId,int min,int max)
+	public RewardHolder(int rewardId, int rewardMin, int rewardMax)
 	{
 		_id = rewardId;
-		_min = min;
-		_max = max;
+		_min = rewardMin;
+		_max = rewardMax;
 		_chance = 100;
 	}
 	
 	/**
 	 * @param rewardId
-	 * @param min 
-	 * @param max 
+	 * @param rewardMin
+	 * @param rewardMax
 	 * @param rewardChance
 	 */
-	public RewardHolder(int rewardId, int min, int max, int rewardChance)
+	public RewardHolder(int rewardId, int rewardMin, int rewardMax, int rewardChance)
 	{
 		_id = rewardId;
-		_min = min;
-		_max = max;
+		_min = rewardMin;
+		_max = rewardMax;
 		_chance = rewardChance;
 	}
 	
@@ -42,11 +39,12 @@ public class RewardHolder
 		return _id;
 	}
 	
-	public int getMin()
+	public int getRewardMin()
 	{
 		return _min;
 	}
-	public int getMax()
+	
+	public int getRewardMax()
 	{
 		return _max;
 	}

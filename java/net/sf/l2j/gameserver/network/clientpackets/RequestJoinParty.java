@@ -14,7 +14,7 @@
  */
 package net.sf.l2j.gameserver.network.clientpackets;
 
-import net.sf.l2j.events.TvT;
+import net.sf.l2j.Config;
 import net.sf.l2j.gameserver.model.BlockList;
 import net.sf.l2j.gameserver.model.L2Party;
 import net.sf.l2j.gameserver.model.World;
@@ -25,9 +25,8 @@ import net.sf.l2j.gameserver.network.SystemMessageId;
 import net.sf.l2j.gameserver.network.serverpackets.AskJoinParty;
 import net.sf.l2j.gameserver.network.serverpackets.SystemMessage;
 
-import net.sf.l2j.Config;
-
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 /**
@@ -59,9 +58,9 @@ public final class RequestJoinParty extends L2GameClientPacket
 			return;
 		}
 
-		if (TvT.is_started() && (target._inEventTvT || requestor._inEventTvT) && !requestor.isGM())
+		if (TvTEvent.isPlayerParticipant(target.getObjectId()) || TvTEvent.isPlayerParticipant(requestor.getObjectId()))
 		{
-			requestor.sendMessage("You or your target cannot Join Party during TvT Event.");
+			requestor.sendPacket(SystemMessageId.YOU_HAVE_INVITED_THE_WRONG_TARGET);
 			return;
 		}
 		if (DMEvent.isPlayerParticipant(target.getObjectId()) || DMEvent.isPlayerParticipant(requestor.getObjectId()))
@@ -92,11 +91,11 @@ public final class RequestJoinParty extends L2GameClientPacket
 		      requestor.sendMessage("ANTI-ZERG: You can not invite players who are not from your clan/ally to your party in the Boss zone.");
 		       return;
 		   }
-	      if(target.isInsideZone(ZoneId.PVP_CUSTOM) || requestor .isInsideZone(ZoneId.PVP_CUSTOM))
-	      {
-	    	  requestor.sendMessage("The player you tried to invite is in refusal party your PvP Event.");
-	    	  return;
-	      }
+	      if(Config.NO_INVITE_PVPEVENT && target.isInsideZone(ZoneId.PVP_CUSTOM) || requestor .isInsideZone(ZoneId.PVP_CUSTOM))
+			{
+				requestor.sendMessage("The player you tried to invite is in refusal party your PvP Event.");
+				return;
+			}
 	      if (target.isInsideZone(ZoneId.RAID_NO_FLAG) || requestor.isInsideZone(ZoneId.RAID_NO_FLAG)) 
 	      {	          
 		      requestor.sendMessage("ANTI-ZERG: You can not invite players who are not from your clan/ally to your party in the Boss zone.");

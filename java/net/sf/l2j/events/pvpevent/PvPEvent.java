@@ -4,30 +4,34 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.logging.Logger;
 
 import net.sf.l2j.Config;
 import net.sf.l2j.ConnectionPool;
 import net.sf.l2j.gameserver.data.ItemTable;
 import net.sf.l2j.gameserver.idfactory.IdFactory;
-import net.sf.l2j.gameserver.model.Announcement;
 import net.sf.l2j.gameserver.model.World;
 import net.sf.l2j.gameserver.model.actor.instance.Player;
 import net.sf.l2j.gameserver.model.item.kind.Item;
+import net.sf.l2j.gameserver.model.zone.ZoneId;
 import net.sf.l2j.gameserver.network.serverpackets.ExShowScreenMessage;
 import net.sf.l2j.gameserver.network.serverpackets.InventoryUpdate;
 import net.sf.l2j.gameserver.network.serverpackets.NpcHtmlMessage;
+import net.sf.l2j.gameserver.util.Broadcast;
 
 public class PvPEvent
 {
     private static final Logger _log;
     private PvPEventEngineState _state;
     
-    public PvPEvent() {
+    public PvPEvent()
+    {
         this._state = PvPEventEngineState.INACTIVE;
     }
     
-    public boolean startPartyEvent() {
+    public boolean startPartyEvent() 
+    {
         this.setState(PvPEventEngineState.ACTIVE);
         return true;
     }
@@ -36,67 +40,144 @@ public class PvPEvent
         this.setState(PvPEventEngineState.INACTIVE);
         return true;
     }
-    
-    private void setState(final PvPEventEngineState state) {
-        synchronized (state) {
+    public static int getPlayerRank(Player player)
+    {
+        int rank = 0;
+        try (Connection con = ConnectionPool.getConnection();
+             PreparedStatement ps = con.prepareStatement(
+                 "SELECT COUNT(*)+1 AS rank FROM characters WHERE event_pvp > ?"))
+        {
+            int kills = PvPEvent.getEventPvp(player);
+            ps.setInt(1, kills);
+            try (ResultSet rs = ps.executeQuery())
+            {
+                if (rs.next())
+                {
+                    rank = rs.getInt("rank");
+                }
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        return rank;
+    }
+
+    private void setState(final PvPEventEngineState state) 
+    {
+        synchronized (state)
+        {
             this._state = state;
         }
     }
     
-    public boolean isActive() {
-        synchronized (this._state) {
+    public boolean isActive()
+    {
+        synchronized (this._state)
+        {
             return this._state == PvPEventEngineState.ACTIVE;
         }
     }
     
-    public boolean isInactive() {
-        synchronized (this._state) {
+    public boolean isInactive()
+    {
+        synchronized (this._state) 
+        {
             return this._state == PvPEventEngineState.INACTIVE;
         }
     }
     
-    public void rewardFinish() {
-        if (getTopZonePvpCount() == 0) {
-            Announcement.AnnounceEvents(""+Config.NAME_PVP+" is finished without winners!");
-        }
-        else {
-            Announcement.AnnounceEvents(""+Config.NAME_PVP+" Winner is " + getTopZonePvpName() + " with " + getTopZonePvpCount() + " pvp's.");
-            addReward(getTopZonePlayerReward());
-        }
-        cleanPvpEvent();
+    public void rewardFinish()
+    {
+    	if (Config.PVP_EVENT_RANK_REWARDS.isEmpty())
+    	{
+    		_log.warning("PvPEvent: Nenhuma recompensa de rank configurada.");
+    		return;
+    	}
+
+    	int rewardCount = Config.PVP_EVENT_RANK_REWARDS.size();
+
+    	try (Connection con = ConnectionPool.getConnection();
+    	     PreparedStatement ps = con.prepareStatement("SELECT obj_Id, char_name FROM characters WHERE event_pvp > 0 ORDER BY event_pvp DESC LIMIT " + rewardCount);
+    	     ResultSet rs = ps.executeQuery())
+    	{
+    		int rank = 1;
+    		while (rs.next())
+    		{
+    			int objId = rs.getInt("obj_Id");
+    			String name = rs.getString("char_name");
+
+    			List<int[]> rewards = Config.PVP_EVENT_RANK_REWARDS.get(rank);
+    			if (rewards != null)
+    			{
+    				_log.info("PvPEvent: Entregando recompensa para Rank " + rank + " - " + name);
+    				Broadcast.gameAnnounceToOnlinePlayers(Config.NAME_PVP + " Rank " + rank + ": " + name);
+    				addReward(objId, rewards, rank, name);
+    			}
+    			rank++;
+    		}
+    	}
+    	catch (SQLException e)
+    	{
+    		_log.warning("PvPEvent: Erro ao distribuir recompensas - " + e.getMessage());
+    		e.printStackTrace();
+    	}
+    	// 🟩 Restaurar títulos originais apenas de quem está na zona PVP_CUSTOM
+    	for (Player player : World.getInstance().getPlayers())
+    	{
+    		if (!player.isInsideZone(ZoneId.PVP_CUSTOM))
+    			continue;
+
+    			player.broadcastUserInfo();
+    			player.broadcastCharInfo();
+    		
+    	}
+    	cleanPvpEvent();
     }
+
+
    
-    public static void cleanPvpEvent() {
-        try (final Connection con = ConnectionPool.getConnection()) {
+    public static void cleanPvpEvent()
+    {
+        try (final Connection con = ConnectionPool.getConnection())
+        {
             final PreparedStatement statement = con.prepareStatement("UPDATE characters SET event_pvp=0");
             statement.executeUpdate();
             statement.close();
         }
-        catch (Exception e) {
+        catch (Exception e)
+        {
             e.printStackTrace();
         }
     }
     
-    static int getTopZonePlayerReward() {
+    static int getTopZonePlayerReward() 
+    {
         int id = 0;
-        try (final Connection con = ConnectionPool.getConnection()) {
+        try (final Connection con = ConnectionPool.getConnection())
+        {
             final PreparedStatement statement = con.prepareStatement("SELECT obj_Id FROM characters ORDER BY event_pvp DESC LIMIT 1");
             final ResultSet rset = statement.executeQuery();
-            while (rset.next()) {
+            while (rset.next()) 
+            {
                 id = rset.getInt("obj_Id");
             }
             rset.close();
             statement.close();
         }
-        catch (Exception e) {
+        catch (Exception e) 
+        {
             e.printStackTrace();
         }
         return id;
     }
     
-    static int getTopZonePvpCount() {
+    static int getTopZonePvpCount()
+    {
         int id = 0;
-        try (final Connection con = ConnectionPool.getConnection()) {
+        try (final Connection con = ConnectionPool.getConnection()) 
+        {
             final PreparedStatement statement = con.prepareStatement("SELECT event_pvp FROM characters ORDER BY event_pvp DESC LIMIT 1");
             final ResultSet rset = statement.executeQuery();
             while (rset.next()) {
@@ -111,9 +192,11 @@ public class PvPEvent
         return id;
     }
     
-    static String getTopZonePvpName() {
+    static String getTopZonePvpName()
+    {
         String name = null;
-        try (final Connection con = ConnectionPool.getConnection()) {
+        try (final Connection con = ConnectionPool.getConnection())
+        {
             final PreparedStatement statement = con.prepareStatement("SELECT char_name FROM characters ORDER BY event_pvp DESC LIMIT 1");
             final ResultSet rset = statement.executeQuery();
             while (rset.next()) {
@@ -122,14 +205,17 @@ public class PvPEvent
             rset.close();
             statement.close();
         }
-        catch (Exception e) {
+        catch (Exception e) 
+        {
             e.printStackTrace();
         }
         return name;
     }
     
-    public static void addEventPvp(final Player activeChar) {
-        try (final Connection con = ConnectionPool.getConnection()) {
+    public static void addEventPvp(final Player activeChar)
+    {
+        try (final Connection con = ConnectionPool.getConnection())
+        {
             final PreparedStatement statement = con.prepareStatement("UPDATE characters SET event_pvp=? WHERE obj_Id=?");
             statement.setInt(1, getEventPvp(activeChar) + 1);
             statement.setInt(2, activeChar.getObjectId());
@@ -141,45 +227,64 @@ public class PvPEvent
         }
     }
     
-    public static int getEventPvp(final Player activeChar) {
+    public static int getEventPvp(final Player activeChar)
+    {
         int id = 0;
-        try (final Connection con = ConnectionPool.getConnection()) {
+        try (final Connection con = ConnectionPool.getConnection())
+        {
             final PreparedStatement statement = con.prepareStatement("SELECT event_pvp FROM characters WHERE obj_Id=?");
             statement.setInt(1, activeChar.getObjectId());
             final ResultSet rset = statement.executeQuery();
-            while (rset.next()) {
+            while (rset.next())
+            {
                 id = rset.getInt("event_pvp");
             }
             rset.close();
             statement.close();
         }
-        catch (Exception e) {
+        catch (Exception e)
+        {
             e.printStackTrace();
         }
         return id;
     }
-    
-    private static void addReward(final int objId) {
-        final Player player = World.getInstance().getPlayer(objId);
-        for (final int[] reward : Config.PVP_EVENT_REWARDS) {
-            if (player != null && player.isOnline()) {
-                final InventoryUpdate iu = new InventoryUpdate();
-                player.addItem("Top Reward", reward[0], reward[1], player, true);
-                player.sendPacket(new ExShowScreenMessage("Congratulations " + player.getName() + " you are the winner of PvP Event.", 3000, 2, true));
-                player.getInventory().updateDatabase();
-                player.sendPacket(iu);
-            }
-            else {
-                addOfflineItem(objId, reward[0], reward[1]);
-            }
-        }
+
+    private static void addReward(final int objId, final List<int[]> rewards, int rank, String name)
+    {
+    	final Player player = World.getInstance().getPlayer(objId);
+    	for (final int[] reward : rewards)
+    	{
+    		int amount = reward[1];
+    		if (player != null && player.isOnline())
+    		{
+    			if (player.isVip())
+    				amount = amount * Config.RATE_DROP_VIP;
+
+    			final InventoryUpdate iu = new InventoryUpdate();
+    			player.addItem("PvP Rank Reward", reward[0], amount, player, true);
+    			player.sendPacket(new ExShowScreenMessage(
+    				"Congratulations " + name + "! You are Rank " + rank + " in the PvP Event!", 5000, 2, true));
+    			player.getInventory().updateDatabase();
+    			player.sendPacket(iu);
+    		}
+    		else
+    		{
+    			addOfflineItem(objId, reward[0], amount);
+    		}
+    	}
     }
+
+
     
-    private static void addOfflineItem(final int ownerId, final int itemId, final int count) {
+    
+    private static void addOfflineItem(final int ownerId, final int itemId, final int count)
+    {
         final Item item = ItemTable.getInstance().getTemplate(itemId);
         final int objectId = IdFactory.getInstance().getNextId();
-        try (final Connection con = ConnectionPool.getConnection()) {
-            if (count > 1 && !item.isStackable()) {
+        try (final Connection con = ConnectionPool.getConnection())
+        {
+            if (count > 1 && !item.isStackable()) 
+            {
                 return;
             }
             final PreparedStatement statement = con.prepareStatement("INSERT INTO items (owner_id,item_id,count,loc,loc_data,enchant_level,object_id,custom_type1,custom_type2,mana_left,time) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
@@ -197,14 +302,17 @@ public class PvPEvent
             statement.executeUpdate();
             statement.close();
         }
-        catch (SQLException e) {
+        catch (SQLException e) 
+        {
             PvPEvent._log.severe("Could not update item char: " + e);
             e.printStackTrace();
         }
     }
     
-    public static void getTopHtml(final Player activeChar) {
-        if (getInstance().isActive()) {
+    public static void getTopHtml(final Player activeChar) 
+    {
+        if (getInstance().isActive()) 
+        {
         	
 			NpcHtmlMessage htm = new NpcHtmlMessage(5);
 			StringBuilder tb = new StringBuilder();
@@ -220,7 +328,8 @@ public class PvPEvent
 			tb.append("<td><center>Status</center></td>");
 			tb.append("</tr>");
 			
-            try (final Connection con = ConnectionPool.getConnection()) {
+            try (final Connection con = ConnectionPool.getConnection())
+            {
                 final PreparedStatement statement = con.prepareStatement("SELECT char_name,event_pvp,accesslevel,online FROM characters ORDER BY event_pvp DESC LIMIT 15");
                 final ResultSet result = statement.executeQuery();
                 int pos = 0;
@@ -254,7 +363,8 @@ public class PvPEvent
                 result.close();
                 con.close();
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 PvPEvent._log.warning("Error while selecting top 15 pvp from database: " + e);
             }
             
@@ -272,11 +382,13 @@ public class PvPEvent
         activeChar.sendMessage("PvP Event is not in progress!");
     }
     
-    public static PvPEvent getInstance() {
+    public static PvPEvent getInstance()
+    {
         return SingletonHolder._instance;
     }
     
-    static {
+    static
+    {
         _log = Logger.getLogger(PvPEvent.class.getName());
     }
     
@@ -284,7 +396,8 @@ public class PvPEvent
     {
         protected static final PvPEvent _instance;
         
-        static {
+        static 
+        {
             _instance = new PvPEvent();
         }
     }

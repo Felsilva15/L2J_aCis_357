@@ -1,7 +1,6 @@
 package net.sf.l2j.gameserver.network.clientpackets;
 
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.model.BlockList;
 import net.sf.l2j.gameserver.model.World;
 import net.sf.l2j.gameserver.model.actor.Npc;
@@ -44,7 +43,7 @@ public final class TradeRequest extends L2GameClientPacket
 			return;
 		}
 		
-		if ((target._inEventTvT && TvT.is_started() || target._inEventCTF && CTF.is_started()) && !player.isGM())
+		if ((target._inEventCTF && CTF.is_started()) && !player.isGM())
 		{
 			player.sendMessage("You or your target cannot trade during Event.");
 			return;

@@ -15,7 +15,6 @@ import net.sf.l2j.Config;
 import net.sf.l2j.commons.concurrent.ThreadPool;
 
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.data.CharTemplateTable;
 import net.sf.l2j.gameserver.data.ItemTable;
 import net.sf.l2j.gameserver.data.PlayerNameTable;
@@ -519,143 +518,307 @@ public class Phantom_Archers
 	
 	public static boolean doCastlist(final Player player)
 	{
-		if (player.isDead() || player.isAttackP())
-			return false;
-		
-		List<Creature> targetList = new ArrayList<>();
-		
-		for (WorldObject obj : player.getKnownType(WorldObject.class))
-		{
-			if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null && player.getAllyId() != 0 && ((Player) obj).getAllyId() != 0)
-			{
-				if ((((Player) obj).getClan().getAllyId() != player.getClan().getAllyId()) && (((Player) obj).getClan().getClanId() != player.getClan().getClanId()) && !((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 900 / 2, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-					
-					targetList.add((Player) obj);
-			}
-			else if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null)
-			{
-				if ((((Player) obj).getClan().getClanId() != player.getClan().getClanId()) && !((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 900 / 2, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-					
-					targetList.add((Player) obj);
-			}
-			else if (obj instanceof Player)
-			{
-				if (!((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 900 / 2, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-					targetList.add((Player) obj);
-			}
-		}
-		
-		if (targetList.size() == 0)
-		{
-			for (WorldObject obj : player.getKnownType(WorldObject.class))
-			{
-				if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null && player.getAllyId() != 0 && ((Player) obj).getAllyId() != 0)
-				{
-					if ((((Player) obj).getClan().getAllyId() != player.getClan().getAllyId()) && (((Player) obj).getClan().getClanId() != player.getClan().getClanId()) && !((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 900, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-						
-						targetList.add((Player) obj);
-				}
-				else if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null)
-				{
-					if ((((Player) obj).getClan().getClanId() != player.getClan().getClanId()) && !((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 900, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-						
-						targetList.add((Player) obj);
-				}
-				else if (obj instanceof Player)
-				{
-					if (!((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 900, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-						targetList.add((Player) obj);
-				}
-			}
-			
-			if (targetList.size() == 0)
-			{
-				for (WorldObject obj : player.getKnownType(WorldObject.class))
-				{
-					if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null && player.getAllyId() != 0 && ((Player) obj).getAllyId() != 0)
-					{
-						if ((((Player) obj).getClan().getAllyId() != player.getClan().getAllyId()) && (((Player) obj).getClan().getClanId() != player.getClan().getClanId()) && !((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 1000, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-							targetList.add((Player) obj);
-					}
-					else if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null)
-					{
-						if ((((Player) obj).getClan().getClanId() != player.getClan().getClanId()) && !((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 1000, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-							targetList.add((Player) obj);
-					}
-					else if (obj instanceof Player)
-					{
-						if (!((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 1000, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-							targetList.add((Player) obj);
-					}
-				}
-			}
-			
-			if (targetList.size() == 0)
-			{
-				for (WorldObject obj : player.getKnownType(WorldObject.class))
-				{
-					if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null && player.getAllyId() != 0 && ((Player) obj).getAllyId() != 0)
-					{
-						if ((((Player) obj).getClan().getAllyId() != player.getClan().getAllyId()) && (((Player) obj).getClan().getClanId() != player.getClan().getClanId()) && !((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 2000, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-							targetList.add((Player) obj);
-					}
-					else if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null)
-					{
-						if ((((Player) obj).getClan().getClanId() != player.getClan().getClanId()) && !((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 2000, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-							targetList.add((Player) obj);
-					}
-					else if (obj instanceof Player)
-					{
-						if (!((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 2000, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-							targetList.add((Player) obj);
-					}
-				}
-			}
-			
-			if (targetList.size() == 0)
-			{
-				for (WorldObject obj : player.getKnownType(WorldObject.class))
-				{
-					if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null && player.getAllyId() != 0 && ((Player) obj).getAllyId() != 0)
-					{
-						if ((((Player) obj).getClan().getAllyId() != player.getClan().getAllyId()) && (((Player) obj).getClan().getClanId() != player.getClan().getClanId()) && !((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 3000, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-							targetList.add((Player) obj);
-					}
-					else if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null)
-					{
-						if ((((Player) obj).getClan().getClanId() != player.getClan().getClanId()) && !((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 3000, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-							targetList.add((Player) obj);
-					}
-					else if (obj instanceof Player)
-					{
-						if (!((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 3000, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-							targetList.add((Player) obj);
-					}
-				}
-			}
-			
-			if (targetList.size() == 0)
-			{
-				for (WorldObject obj : player.getKnownType(WorldObject.class))
-				{
-					if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null && player.getAllyId() != 0 && ((Player) obj).getAllyId() != 0)
-					{
-						if ((((Player) obj).getClan().getAllyId() != player.getClan().getAllyId()) && (((Player) obj).getClan().getClanId() != player.getClan().getClanId()) && !((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 6000, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-							targetList.add((Player) obj);
-					}
-					else if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null)
-					{
-						if ((((Player) obj).getClan().getClanId() != player.getClan().getClanId()) && !((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 6000, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-							targetList.add((Player) obj);
-					}
-					else if (obj instanceof Player)
-					{
-						if (!((Player) obj).isDead() && !((Player) obj).isSpawnProtected() && !((Player) obj).isPhantomAntBot() && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 6000, false, false) && !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-							targetList.add((Player) obj);
-					}
-				}
-			}			
-		}
+	    if (player.isDead() || player.isAttackP())
+	        return false;
+
+	    List<Creature> targetList = new ArrayList<>();
+
+	    // Raio 450 (900/2)
+	    for (WorldObject obj : player.getKnownType(WorldObject.class))
+	    {
+	        if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null && player.getAllyId() != 0 && ((Player) obj).getAllyId() != 0)
+	        {
+	            if ((((Player) obj).getClan().getAllyId() != player.getClan().getAllyId())
+	                && (((Player) obj).getClan().getClanId() != player.getClan().getClanId())
+	                && !((Player) obj).isDead()
+	                && !((Player) obj).isSpawnProtected()
+	                && !((Player) obj).isPhantomAntBot()
+	                && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 900 / 2, false, false)
+	                && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	            {
+	                targetList.add((Player) obj);
+	            }
+	        }
+	        else if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null)
+	        {
+	            if ((((Player) obj).getClan().getClanId() != player.getClan().getClanId())
+	                && !((Player) obj).isDead()
+	                && !((Player) obj).isSpawnProtected()
+	                && !((Player) obj).isPhantomAntBot()
+	                && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 900 / 2, false, false)
+	                && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	            {
+	                targetList.add((Player) obj);
+	            }
+	        }
+	        else if (obj instanceof Player)
+	        {
+	            if (!((Player) obj).isDead()
+	                && !((Player) obj).isSpawnProtected()
+	                && !((Player) obj).isPhantomAntBot()
+	                && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 900 / 2, false, false)
+	                && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	            {
+	                targetList.add((Player) obj);
+	            }
+	        }
+	    }
+
+	    if (targetList.size() == 0)
+	    {
+	        // Raio 900
+	        for (WorldObject obj : player.getKnownType(WorldObject.class))
+	        {
+	            if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null && player.getAllyId() != 0 && ((Player) obj).getAllyId() != 0)
+	            {
+	                if ((((Player) obj).getClan().getAllyId() != player.getClan().getAllyId())
+	                    && (((Player) obj).getClan().getClanId() != player.getClan().getClanId())
+	                    && !((Player) obj).isDead()
+	                    && !((Player) obj).isSpawnProtected()
+	                    && !((Player) obj).isPhantomAntBot()
+	                    && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                    && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                    && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 900, false, false)
+	                    && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                {
+	                    targetList.add((Player) obj);
+	                }
+	            }
+	            else if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null)
+	            {
+	                if ((((Player) obj).getClan().getClanId() != player.getClan().getClanId())
+	                    && !((Player) obj).isDead()
+	                    && !((Player) obj).isSpawnProtected()
+	                    && !((Player) obj).isPhantomAntBot()
+	                    && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                    && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                    && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 900, false, false)
+	                    && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                {
+	                    targetList.add((Player) obj);
+	                }
+	            }
+	            else if (obj instanceof Player)
+	            {
+	                if (!((Player) obj).isDead()
+	                    && !((Player) obj).isSpawnProtected()
+	                    && !((Player) obj).isPhantomAntBot()
+	                    && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                    && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                    && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 900, false, false)
+	                    && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                {
+	                    targetList.add((Player) obj);
+	                }
+	            }
+	        }
+
+	        if (targetList.size() == 0)
+	        {
+	            // Raio 1000
+	            for (WorldObject obj : player.getKnownType(WorldObject.class))
+	            {
+	                if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null && player.getAllyId() != 0 && ((Player) obj).getAllyId() != 0)
+	                {
+	                    if ((((Player) obj).getClan().getAllyId() != player.getClan().getAllyId())
+	                        && (((Player) obj).getClan().getClanId() != player.getClan().getClanId())
+	                        && !((Player) obj).isDead()
+	                        && !((Player) obj).isSpawnProtected()
+	                        && !((Player) obj).isPhantomAntBot()
+	                        && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                        && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                        && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 1000, false, false)
+	                        && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                    {
+	                        targetList.add((Player) obj);
+	                    }
+	                }
+	                else if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null)
+	                {
+	                    if ((((Player) obj).getClan().getClanId() != player.getClan().getClanId())
+	                        && !((Player) obj).isDead()
+	                        && !((Player) obj).isSpawnProtected()
+	                        && !((Player) obj).isPhantomAntBot()
+	                        && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                        && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                        && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 1000, false, false)
+	                        && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                    {
+	                        targetList.add((Player) obj);
+	                    }
+	                }
+	                else if (obj instanceof Player)
+	                {
+	                    if (!((Player) obj).isDead()
+	                        && !((Player) obj).isSpawnProtected()
+	                        && !((Player) obj).isPhantomAntBot()
+	                        && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                        && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                        && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 1000, false, false)
+	                        && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                    {
+	                        targetList.add((Player) obj);
+	                    }
+	                }
+	            }
+
+	            if (targetList.size() == 0)
+	            {
+	                // Raio 2000
+	                for (WorldObject obj : player.getKnownType(WorldObject.class))
+	                {
+	                    if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null && player.getAllyId() != 0 && ((Player) obj).getAllyId() != 0)
+	                    {
+	                        if ((((Player) obj).getClan().getAllyId() != player.getClan().getAllyId())
+	                            && (((Player) obj).getClan().getClanId() != player.getClan().getClanId())
+	                            && !((Player) obj).isDead()
+	                            && !((Player) obj).isSpawnProtected()
+	                            && !((Player) obj).isPhantomAntBot()
+	                            && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                            && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                            && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 2000, false, false)
+	                            && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                        {
+	                            targetList.add((Player) obj);
+	                        }
+	                    }
+	                    else if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null)
+	                    {
+	                        if ((((Player) obj).getClan().getClanId() != player.getClan().getClanId())
+	                            && !((Player) obj).isDead()
+	                            && !((Player) obj).isSpawnProtected()
+	                            && !((Player) obj).isPhantomAntBot()
+	                            && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                            && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                            && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 2000, false, false)
+	                            && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                        {
+	                            targetList.add((Player) obj);
+	                        }
+	                    }
+	                    else if (obj instanceof Player)
+	                    {
+	                        if (!((Player) obj).isDead()
+	                            && !((Player) obj).isSpawnProtected()
+	                            && !((Player) obj).isPhantomAntBot()
+	                            && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                            && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                            && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 2000, false, false)
+	                            && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                        {
+	                            targetList.add((Player) obj);
+	                        }
+	                    }
+	                }
+
+	                if (targetList.size() == 0)
+	                {
+	                    // Raio 3000
+	                    for (WorldObject obj : player.getKnownType(WorldObject.class))
+	                    {
+	                        if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null && player.getAllyId() != 0 && ((Player) obj).getAllyId() != 0)
+	                        {
+	                            if ((((Player) obj).getClan().getAllyId() != player.getClan().getAllyId())
+	                                && (((Player) obj).getClan().getClanId() != player.getClan().getClanId())
+	                                && !((Player) obj).isDead()
+	                                && !((Player) obj).isSpawnProtected()
+	                                && !((Player) obj).isPhantomAntBot()
+	                                && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                                && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                                && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 3000, false, false)
+	                                && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                            {
+	                                targetList.add((Player) obj);
+	                            }
+	                        }
+	                        else if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null)
+	                        {
+	                            if ((((Player) obj).getClan().getClanId() != player.getClan().getClanId())
+	                                && !((Player) obj).isDead()
+	                                && !((Player) obj).isSpawnProtected()
+	                                && !((Player) obj).isPhantomAntBot()
+	                                && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                                && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                                && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 3000, false, false)
+	                                && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                            {
+	                                targetList.add((Player) obj);
+	                            }
+	                        }
+	                        else if (obj instanceof Player)
+	                        {
+	                            if (!((Player) obj).isDead()
+	                                && !((Player) obj).isSpawnProtected()
+	                                && !((Player) obj).isPhantomAntBot()
+	                                && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                                && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                                && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 3000, false, false)
+	                                && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                            {
+	                                targetList.add((Player) obj);
+	                            }
+	                        }
+	                    }
+
+	                    if (targetList.size() == 0)
+	                    {
+	                        // Raio 6000
+	                        for (WorldObject obj : player.getKnownType(WorldObject.class))
+	                        {
+	                            if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null && player.getAllyId() != 0 && ((Player) obj).getAllyId() != 0)
+	                            {
+	                                if ((((Player) obj).getClan().getAllyId() != player.getClan().getAllyId())
+	                                    && (((Player) obj).getClan().getClanId() != player.getClan().getClanId())
+	                                    && !((Player) obj).isDead()
+	                                    && !((Player) obj).isSpawnProtected()
+	                                    && !((Player) obj).isPhantomAntBot()
+	                                    && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                                    && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                                    && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 6000, false, false)
+	                                    && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                                {
+	                                    targetList.add((Player) obj);
+	                                }
+	                            }
+	                            else if ((obj instanceof Player) && player.getClan() != null && ((Player) obj).getClan() != null)
+	                            {
+	                                if ((((Player) obj).getClan().getClanId() != player.getClan().getClanId())
+	                                    && !((Player) obj).isDead()
+	                                    && !((Player) obj).isSpawnProtected()
+	                                    && !((Player) obj).isPhantomAntBot()
+	                                    && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                                    && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                                    && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 6000, false, false)
+	                                    && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                                {
+	                                    targetList.add((Player) obj);
+	                                }
+	                            }
+	                            else if (obj instanceof Player)
+	                            {
+	                                if (!((Player) obj).isDead()
+	                                    && !((Player) obj).isSpawnProtected()
+	                                    && !((Player) obj).isPhantomAntBot()
+	                                    && !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible())
+	                                    && (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0)
+	                                    && ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), 6000, false, false)
+	                                    && !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	                                {
+	                                    targetList.add((Player) obj);
+	                                }
+	                            }
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	    }
 		
 		if (targetList.size() == 0)
 		{
@@ -734,17 +897,26 @@ public class Phantom_Archers
 	
 	static void doCast(final Player player, final Player target)
 	{
-		if (!player.isDead() && player.getTarget() != null && !target.isDead() && (target.getPvpFlag() != 0 || target.getKarma() != 0) && !(target._inEventTvT && TvT.is_started()) && !(target._inEventCTF && CTF.is_started()) && (player.getZ() > (target.getZ() + 100)))
+		if (!player.isDead() && player.getTarget() != null && !target.isDead()
+			&& (target.getPvpFlag() != 0 || target.getKarma() != 0)
+			&& !(target._inEventCTF && CTF.is_started())
+			&& (player.getZ() > (target.getZ() + 100)))
 		{
 			Seguir(player, target);
 			return;
 		}
-		else if (!player.isDead() && player.getTarget() != null && !target.isDead() && (target.getPvpFlag() != 0 || target.getKarma() != 0) && !(target._inEventTvT && TvT.is_started()) && !(target._inEventCTF && CTF.is_started()) && !GeoEngine.getInstance().canSeeTarget(player, target))
+		else if (!player.isDead() && player.getTarget() != null && !target.isDead()
+			&& (target.getPvpFlag() != 0 || target.getKarma() != 0)
+			&& !(target._inEventCTF && CTF.is_started())
+			&& !GeoEngine.getInstance().canSeeTarget(player, target))
 		{
 			Seguir(player, target);
 			return;
 		}
-		else if (!player.isDead() && (target.isDead() || player.getTarget() == null || (target.getPvpFlag() == 0 && target.getKarma() == 0) || (target._inEventTvT && TvT.is_started()) || (target._inEventCTF && CTF.is_started())))
+		else if (!player.isDead() && (target.isDead()
+			|| player.getTarget() == null
+			|| (target.getPvpFlag() == 0 && target.getKarma() == 0)
+			|| (target._inEventCTF && CTF.is_started())))
 		{
 			player.stopMove(null);
 			player.setTarget(null);
@@ -752,10 +924,11 @@ public class Phantom_Archers
 			return;
 		}
 		
-       if (!player.isDead() && player.isPhantomArcher()){
+		if (!player.isDead() && player.isPhantomArcher()) {
 			Archer_Attack_Target(player, target);
 		}
 	}
+
 	
 	static void Archer_Attack(Player player, Player target, int skill_id, int skill_level, int delay)
 	{
@@ -765,15 +938,21 @@ public class Phantom_Archers
 		if (!player.isDead() && !player.isAllSkillsDisabled() && !player.isAttackP())
 		{
 			checkRange(player, target);
-			if (!player.isDead() && player.isInsideRadius(target.getX(), target.getY(), target.getZ(), 900, false, false) && GeoEngine.getInstance().canSeeTarget(player, target) && (target.getPvpFlag() > 0 || target.getKarma() > 0) && !(target._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(target._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+			
+			if (!player.isDead()
+				&& player.isInsideRadius(target.getX(), target.getY(), target.getZ(), 900, false, false)
+				&& GeoEngine.getInstance().canSeeTarget(player, target)
+				&& (target.getPvpFlag() > 0 || target.getKarma() > 0)
+				&& !(target._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
 			{
 				player.stopMove(null);
 				player.getAI().setIntention(CtrlIntention.FOLLOW, null);
-				if (Config.ALLOW_PHANTOM_PLAYERS_EFFECT_SHOT){
-				//player.broadcastPacket(new MagicSkillUse(player, player, 2166, 1, 0, 0));
-				player.broadcastPacket(new MagicSkillUse(player, player, 2164, 1, 0, 0));
-				//player.addAutoSoulShot(1467);
+
+				if (Config.ALLOW_PHANTOM_PLAYERS_EFFECT_SHOT)
+				{
+					player.broadcastPacket(new MagicSkillUse(player, player, 2164, 1, 0, 0));
 				}
+				
 				target.getActingPlayer().getAI().clientStartAutoAttack();
 				player.getActingPlayer().getAI().clientStartAutoAttack();
 				
@@ -781,10 +960,8 @@ public class Phantom_Archers
 				{
 					player.setPvpFlag(1);
 					player.broadcastUserInfo();					
-				}	
-				
+				}
 
-				
 				double pDef = target.getPDef(player);
 				double damage = 91 * Math.sqrt(Config.POWER_PHANTOM_ARCHER) / pDef * 1000;
 				
@@ -799,11 +976,14 @@ public class Phantom_Archers
 				}
 				catch (InterruptedException e)
 				{
+					// Silenciado
 				}
+				
 				player.getAI().setIntention(CtrlIntention.FOLLOW, null);
 			}
 		}
 	}
+
 	
 	public static void forceAutoAttack(Player creature)
 	{
@@ -854,21 +1034,22 @@ public class Phantom_Archers
 				if (Rnd.get(100) < Config.CHANCE_MOVE_ARCHER)
 				{
 					player.rndWalkArcher();
-					try
-					{
-						Thread.sleep(1000);
-					}
-					catch (InterruptedException e)
-					{
-					}
+					try { Thread.sleep(1000); } catch (InterruptedException e) {}
 				}
 			}
-			else if (!player.isDead() && player.getTarget() != null && !target.isDead() && (target.getPvpFlag() != 0 || target.getKarma() != 0) && !(target._inEventTvT && TvT.is_started()) && !(target._inEventCTF && CTF.is_started()) && !GeoEngine.getInstance().canSeeTarget(player, target))
+			else if (!player.isDead() && player.getTarget() != null && !target.isDead()
+				&& (target.getPvpFlag() != 0 || target.getKarma() != 0)
+				&& !(target._inEventCTF && CTF.is_started())
+				&& !GeoEngine.getInstance().canSeeTarget(player, target))
 			{
 				doAtack = false;
 				Seguir(player, target);
 			}
-			else if (!player.isDead() && (target.isDead() || player.getTarget() == null || (target.getPvpFlag() == 0 && target.getKarma() == 0) || (target._inEventTvT && TvT.is_started()) || (target._inEventCTF && CTF.is_started())))
+			else if (!player.isDead()
+				&& (target.isDead()
+				|| player.getTarget() == null
+				|| (target.getPvpFlag() == 0 && target.getKarma() == 0)
+				|| (target._inEventCTF && CTF.is_started())))
 			{
 				doAtack = false;
 				player.stopMove(null);
@@ -879,6 +1060,7 @@ public class Phantom_Archers
 				doAtack = false;
 		}
 	}
+
 	
 	static void checkRange(Player player, Player target)
 	{

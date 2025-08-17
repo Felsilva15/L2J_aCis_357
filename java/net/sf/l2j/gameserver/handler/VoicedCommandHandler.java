@@ -14,6 +14,10 @@
  */
 package net.sf.l2j.gameserver.handler;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import net.sf.l2j.Config;
 import net.sf.l2j.gameserver.handler.voicedcommandhandlers.Repair;
 import net.sf.l2j.gameserver.handler.voicedcommandhandlers.VoicedAutoPotion;
 import net.sf.l2j.gameserver.handler.voicedcommandhandlers.VoicedAutofarm;
@@ -35,16 +39,13 @@ import net.sf.l2j.gameserver.handler.voicedcommandhandlers.VoicedReport;
 import net.sf.l2j.gameserver.handler.voicedcommandhandlers.VoicedStatus;
 import net.sf.l2j.gameserver.handler.voicedcommandhandlers.VoicedTrySkin;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import net.sf.l2j.Config;
-
 import Dev.Community.MarketPlace.CommandMarketPlace;
 import Dev.Event.BossEvent.KTBConfig;
 import Dev.Event.BossEvent.VoicedEventKTB;
 import Dev.Event.DeathMatch.DMConfig;
 import Dev.Event.DeathMatch.VoicedDMEvent;
+import Dev.Event.TvT.TvTConfig;
+import Dev.Event.TvT.VoicedTvTEvent;
 import Dev.Event.TvTFortress.FOSConfig;
 import Dev.Event.TvTFortress.VoicedFOSEvent;
 
@@ -62,6 +63,10 @@ public class VoicedCommandHandler
 		if(Config.ENABLE_AUTO_FARM_COMMAND)
 		{
 			registerHandler(new VoicedAutofarm());	
+		}
+		if (TvTConfig.ALLOW_TvT_COMMANDS)
+		{
+			registerHandler(new VoicedTvTEvent());
 		}
     	if(KTBConfig.ALLOW_EVENT_KTB_COMMANDS)
     	{

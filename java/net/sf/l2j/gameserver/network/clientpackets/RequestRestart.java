@@ -14,6 +14,7 @@ import net.sf.l2j.gameserver.taskmanager.AttackStanceTaskManager;
 
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 public final class RequestRestart extends L2GameClientPacket
@@ -47,13 +48,17 @@ public final class RequestRestart extends L2GameClientPacket
 			sendPacket(RestartResponse.valueOf(false));
 			return;
 		}
-		if (player._inEventTvT || player._inEventCTF || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || KTBEvent.isPlayerParticipant(player.getObjectId()) && !player.isGM())
+		if (player._inEventCTF || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || KTBEvent.isPlayerParticipant(player.getObjectId()) && !player.isGM())
 		{
 			player.sendMessage("You can't restart during Event.");
 			sendPacket(RestartResponse.valueOf(false));
 			return;
 		}
-		
+		if(TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(player.getObjectId()) || TvTEvent.isPlayerParticipant(player.getObjectId()))
+		{
+			player.sendMessage("You can't logout during Event.");
+			return;
+		}
 		if ((player.isInArenaEvent() || player.isArenaProtection()) && ArenaTask.is_started())
 		{
 			player.sendMessage("You cannot restart while in Tournament Event!");

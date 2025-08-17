@@ -147,11 +147,11 @@ public class Monster extends Attackable
 									{
 										if (member.isVip())
 										{
-											member.addItem("Random Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP, member, true);
+											member.addItem("Random Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, member, true);
 										}
 										else
 										{
-											member.addItem("item", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), member, true);
+											member.addItem("item", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), member, true);
 										}
 									}
 								}
@@ -162,11 +162,11 @@ public class Monster extends Attackable
 						{
 							if (player.isVip())
 							{
-								player.addItem("Random Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP, player, true);
+								player.addItem("Random Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, player, true);
 							}
 							else
 							{
-								player.addItem("item", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), player, true);
+								player.addItem("item", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), player, true);
 							}
 						}
 					}
@@ -184,11 +184,11 @@ public class Monster extends Attackable
 									{
 										if (member.isVip())
 										{
-											member.addItem("Random Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP, member, true);
+											member.addItem("Random Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, member, true);
 										}
 										else
 										{
-											member.addItem("item", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), member, true);
+											member.addItem("item", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), member, true);
 										}
 									}
 								}
@@ -198,11 +198,11 @@ public class Monster extends Attackable
 						{
 							if (player.isVip())
 							{
-								player.addItem("Random Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP, player, true);
+								player.addItem("Random Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, player, true);
 							}
 							else
 							{
-								player.addItem("item", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), player, true);
+								player.addItem("item", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), player, true);
 							}
 						}
 					}

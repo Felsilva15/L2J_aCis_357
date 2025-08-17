@@ -1,7 +1,7 @@
 package net.sf.l2j.gameserver.model.actor;
 
+import net.sf.l2j.Config;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.model.Announcement;
 import net.sf.l2j.gameserver.model.L2Effect;
 import net.sf.l2j.gameserver.model.L2Skill;
@@ -20,10 +20,9 @@ import net.sf.l2j.gameserver.scripting.QuestState;
 import net.sf.l2j.gameserver.templates.skills.L2EffectFlag;
 import net.sf.l2j.gameserver.templates.skills.L2EffectType;
 
-import net.sf.l2j.Config;
-
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 /**
@@ -78,6 +77,16 @@ public abstract class Playable extends Creature
 	@Override
 	public void onActionShift(Player player)
 	{
+		if (!TvTEvent.onAction(player, getObjectId()))
+		{
+			player.sendPacket(ActionFailed.STATIC_PACKET);
+			return;
+		}
+		if (TvTEvent.isPlayerParticipant(player.getObjectId()) && TvTEvent.isStarted() && !TvTEvent.isPlayerParticipant(player.getObjectId()))
+		{
+			player.sendPacket(ActionFailed.STATIC_PACKET);
+			return;
+		}
 		// Impede que jogadores deem SHIFT+click em outros jogadores dentro da zona TIME_FARM
 		if (player != this && player.isInsideZone(ZoneId.TIME_FARM) && this instanceof Player && isInsideZone(ZoneId.TIME_FARM))
 		{
@@ -221,7 +230,7 @@ public abstract class Playable extends Creature
 		{
 		    final Player player = (Player) this;
 
-		    if ((player.isArenaAttack() && !Config.ALLOW_TOURNAMENT_DIE_LEAVE_BUFF) || (player.isInsideZone(ZoneId.PARTYZONE) && !Config.ALLOW_PARTYFARM_DIE_LEAVE_BUFF) || (TvT.is_started() && _inEventTvT && !Config.TVT_DIE_LEAVE_BUFF) || (CTF.is_started() && _inEventCTF && !Config.CTF_DIE_LEAVE_BUFF) || (DMEvent.isStarted() && DMEvent.isPlayerParticipant(player.getObjectId()) && !Config.DM_DIE_LEAVE_BUFF) || (player.isInsideZone(ZoneId.PVP_CUSTOM) && !Config.PVPZONE_DIE_LEAVE_BUFF) || (player.isInsideZone(ZoneId.RAID) && !Config.RAIDZONE_DIE_LEAVE_BUFF) || (player.isInsideZone(ZoneId.FLAGZONE) && !Config.FLAGZONE_DIE_LEAVE_BUFF) )
+		    if ((player.isArenaAttack() && !Config.ALLOW_TOURNAMENT_DIE_LEAVE_BUFF) || (player.isInsideZone(ZoneId.PARTYZONE) && !Config.ALLOW_PARTYFARM_DIE_LEAVE_BUFF) || (TvTEvent.isPlayerParticipant(player.getObjectId()) && TvTEvent.isStarted() && !Config.TVT_DIE_LEAVE_BUFF) || (CTF.is_started() && _inEventCTF && !Config.CTF_DIE_LEAVE_BUFF) || (DMEvent.isStarted() && DMEvent.isPlayerParticipant(player.getObjectId()) && !Config.DM_DIE_LEAVE_BUFF) || (player.isInsideZone(ZoneId.PVP_CUSTOM) && !Config.PVPZONE_DIE_LEAVE_BUFF) || (player.isInsideZone(ZoneId.RAID) && !Config.RAIDZONE_DIE_LEAVE_BUFF) || (player.isInsideZone(ZoneId.FLAGZONE) && !Config.FLAGZONE_DIE_LEAVE_BUFF) )
 		    {
 		    	// Todas configs aqui quando estao false em seus eventos, irao manter os buffs
 		    }

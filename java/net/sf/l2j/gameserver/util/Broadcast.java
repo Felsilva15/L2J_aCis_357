@@ -158,7 +158,11 @@ public final class Broadcast
 			}
 		}
 	}
-	
+	public static void announceEventHideToPlayers(String message)
+	{
+		toAllOnlinePlayers(new CreatureSay(0, Say2.PARTYROOM_COMMANDER, "", message));
+
+	}
 	public static void announceToOnlinePlayers(String text)
 	{
 		toAllOnlinePlayers(new CreatureSay(0, Say2.ANNOUNCEMENT, "", text));

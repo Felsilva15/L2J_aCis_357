@@ -1,7 +1,18 @@
 package Dev.AutoFarm;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import net.sf.l2j.Config;
+import net.sf.l2j.commons.concurrent.ThreadPool;
+import net.sf.l2j.commons.math.MathUtil;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.data.xml.AdminData;
 import net.sf.l2j.gameserver.geoengine.GeoEngine;
 import net.sf.l2j.gameserver.handler.IItemHandler;
@@ -43,21 +54,8 @@ import net.sf.l2j.gameserver.scripting.Quest;
 import net.sf.l2j.gameserver.scripting.QuestState;
 import net.sf.l2j.gameserver.templates.skills.L2SkillType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import net.sf.l2j.commons.math.MathUtil;
-
-import net.sf.l2j.Config;
-import net.sf.l2j.commons.concurrent.ThreadPool;
-
 import Dev.Event.BossEvent.KTBEvent;
+import Dev.Event.TvT.TvTEvent;
 
 public class AutofarmPlayerRoutine
 {
@@ -85,7 +83,7 @@ public class AutofarmPlayerRoutine
 		{
 			AutoFarmIP(player, Config.NUMBER_BOX_IP_AUTOFARM, true);
 		}
-		if(player.getPvpFlag() > 0 && player.isInsideZone(ZoneId.BOSS) || player.getPvpFlag() > 0 && player.isInsideZone(ZoneId.RAID) || player.getPvpFlag() > 0 && player.isInsideZone(ZoneId.BOSS) || TvT.is_started() && player._inEventTvT || CTF.is_started() && player._inEventCTF || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || player.isArenaAttack() || player.isInsideZone(ZoneId.PVP_CUSTOM))
+		if(player.getPvpFlag() > 0 && player.isInsideZone(ZoneId.BOSS) || player.getPvpFlag() > 0 && player.isInsideZone(ZoneId.RAID) || player.getPvpFlag() > 0 && player.isInsideZone(ZoneId.BOSS) || TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(player.getObjectId())  || CTF.is_started() && player._inEventCTF || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || player.isArenaAttack() || player.isInsideZone(ZoneId.PVP_CUSTOM))
 	//	if(player.getPvpFlag() > 0 && player.isInsideZone(ZoneId.BOSS) || player.getPvpFlag() > 0 && player.isInsideZone(ZoneId.RAID) || player.getPvpFlag() > 0 && player.isInsideZone(ZoneId.BOSS) || TvT.is_started() && player._inEventTvT || CTF.is_started() && player._inEventCTF || player.isArenaAttack() || player.isInsideZone(ZoneId.PVP_CUSTOM))
 		{
 			player.sendMessage("You don't events to use autofarm or Flag.");

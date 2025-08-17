@@ -1,6 +1,5 @@
 package net.sf.l2j.gameserver.network.clientpackets;
 
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.handler.ITutorialHandler;
 import net.sf.l2j.gameserver.handler.TutorialHandler;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminCustom;
@@ -42,7 +41,7 @@ public class RequestTutorialLinkHtml extends L2GameClientPacket
 		BotsPreventionManager.Link(player, _bypass);
 		
 		BotsPvPPreventionManager.Link(player, _bypass);
-		TvT.Link(player, _bypass);
+	//	TvT.Link(player, _bypass);
 
 		AdminCustom.NewsLink(player, _bypass);
 		AdminCustom.NewsLink2(player, _bypass);

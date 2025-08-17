@@ -19,7 +19,6 @@
 package net.sf.l2j.gameserver.model.actor.instance;
 
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.data.BufferTable;
 import net.sf.l2j.gameserver.data.SkillTable;
 import net.sf.l2j.gameserver.model.L2Skill;
@@ -35,6 +34,8 @@ import net.sf.l2j.gameserver.network.serverpackets.NpcHtmlMessage;
 import net.sf.l2j.gameserver.network.serverpackets.SocialAction;
 import net.sf.l2j.gameserver.network.serverpackets.SystemMessage;
 import net.sf.l2j.gameserver.network.serverpackets.ValidateLocation;
+
+import Dev.Event.TvT.TvTEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -109,7 +110,7 @@ public final class Buffer extends Folk
 		{
 			showMessageWindow(player);
 			
-			if ((player._inEventTvT && TvT.is_started() || player._inEventCTF && CTF.is_started()) && !player.isGM())
+			if ((TvTEvent.isPlayerParticipant(player.getObjectId()) && TvTEvent.isStarted() || player._inEventCTF && CTF.is_started()) && !player.isGM())
 			{
 				player.sendMessage("You can not do that.");
 				return;

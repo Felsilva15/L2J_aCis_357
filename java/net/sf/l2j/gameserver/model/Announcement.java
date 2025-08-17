@@ -4,8 +4,6 @@ import java.util.concurrent.ScheduledFuture;
 
 import net.sf.l2j.Config;
 import net.sf.l2j.commons.concurrent.ThreadPool;
-
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.model.actor.instance.Player;
 import net.sf.l2j.gameserver.model.base.ClassId;
 import net.sf.l2j.gameserver.model.location.SpawnLocation;
@@ -18,6 +16,8 @@ import net.sf.l2j.gameserver.network.serverpackets.ExShowScreenMessage;
 import net.sf.l2j.gameserver.network.serverpackets.SystemMessage;
 import net.sf.l2j.gameserver.util.Broadcast;
 import net.sf.l2j.util.Rnd;
+
+import Dev.Event.TvT.TvTEvent;
 
 /**
  * A datatype used to retain informations for announcements. It notably holds a {@link ScheduledFuture}.
@@ -311,9 +311,9 @@ public class Announcement implements Runnable
 					|| player.isInObserverMode()
 					|| player.getFirstLog()
 					|| player._inEventCTF
-					|| player._inEventTvT
 					|| player.isInsideZone(ZoneId.PVP_CUSTOM)
 					|| player.isInsideZone(ZoneId.RAID)
+					|| TvTEvent.isPlayerParticipant(player.getObjectId()) && TvTEvent.isStarted()
 					|| player.isInsideZone(ZoneId.RAID_NO_FLAG)
 					|| player.isInsideZone(ZoneId.PARTYZONE)
 					|| player.isAio()
@@ -342,46 +342,46 @@ public class Announcement implements Runnable
 	}
 
 	
-	public static boolean tvt_register = false;
-	
-	public static void TvTAnnounce(String text)
-	{
-		tvt_register = true;
-		
-		CreatureSay cs = new CreatureSay(0, Config.ANNOUNCE_ID_EVENT, "", "" + text);
-		
-		for (Player player : World.getInstance().getPlayers())
-		{
-			if (player != null && player.isOnline())
-			{
-				player.sendPacket(cs);
-				
-				ThreadPool.schedule(new Runnable()
-				{
-					@Override
-					public void run()
-					{
-						tvt_register = false;
-					}
-				}, 46000);
-				
-				final boolean bishop = (player.getClassId() == ClassId.BISHOP || player.getClassId() == ClassId.CARDINAL || player.getClassId() == ClassId.SHILLIEN_ELDER || player.getClassId() == ClassId.SHILLIEN_SAINT || player.getClassId() == ClassId.EVAS_SAINT || player.getClassId() == ClassId.ELVEN_ELDER);
-				
-				if (!(player.isOlympiadProtection() || player.getLevel() < TvT.get_minlvl() || player.getLevel() > TvT.get_maxlvl() || player.isCursedWeaponEquipped() || player.isInObserverMode() || player.getFirstLog() || player._inEventCTF || player._inEventTvT || player.isAio() || bishop) && Config.SCREN_MSG)
-				{
-					SpawnLocation _position = new SpawnLocation(TvT._npcX, TvT._npcY, TvT._npcX, 0);
-					ConfirmDlg confirm = new ConfirmDlg(SystemMessageId.EVENT.getId());
-					confirm.addString("Do you want to register on TvT?");
-					confirm.addZoneName(_position);
-					confirm.addTime(45000);
-					confirm.addRequesterId(player.getObjectId());
-					player.sendPacket(confirm);
-				}
-			}
-		}
-		
-		cs = null;
-	}
+//	public static boolean tvt_register = false;
+//	
+//	public static void TvTAnnounce(String text)
+//	{
+//		tvt_register = true;
+//		
+//		CreatureSay cs = new CreatureSay(0, Config.ANNOUNCE_ID_EVENT, "", "" + text);
+//		
+//		for (Player player : World.getInstance().getPlayers())
+//		{
+//			if (player != null && player.isOnline())
+//			{
+//				player.sendPacket(cs);
+//				
+//				ThreadPool.schedule(new Runnable()
+//				{
+//					@Override
+//					public void run()
+//					{
+//						tvt_register = false;
+//					}
+//				}, 46000);
+//				
+//				final boolean bishop = (player.getClassId() == ClassId.BISHOP || player.getClassId() == ClassId.CARDINAL || player.getClassId() == ClassId.SHILLIEN_ELDER || player.getClassId() == ClassId.SHILLIEN_SAINT || player.getClassId() == ClassId.EVAS_SAINT || player.getClassId() == ClassId.ELVEN_ELDER);
+//				
+//				if (!(player.isOlympiadProtection() || player.getLevel() < TvT.get_minlvl() || player.getLevel() > TvT.get_maxlvl() || player.isCursedWeaponEquipped() || player.isInObserverMode() || player.getFirstLog() || player._inEventCTF || player._inEventTvT || player.isAio() || bishop) && Config.SCREN_MSG)
+//				{
+//					SpawnLocation _position = new SpawnLocation(TvT._npcX, TvT._npcY, TvT._npcX, 0);
+//					ConfirmDlg confirm = new ConfirmDlg(SystemMessageId.EVENT.getId());
+//					confirm.addString("Do you want to register on TvT?");
+//					confirm.addZoneName(_position);
+//					confirm.addTime(45000);
+//					confirm.addRequesterId(player.getObjectId());
+//					player.sendPacket(confirm);
+//				}
+//			}
+//		}
+//		
+//		cs = null;
+//	}
 	
 	public static boolean isSummoning = false;
 	
@@ -399,7 +399,7 @@ public class Announcement implements Runnable
 				
 				if (Config.TOURNAMENT_EVENT_SUMMON)
 				{
-					if (!player.isAio() || !player.isAioEterno() || !(player.isInsideZone(ZoneId.TOURNAMENT) || player.isDead() || player._inEventTvT  || player._inEventCTF || player.isInArenaEvent() || player.isInsideZone(ZoneId.BOSS) || player.isInsideZone(ZoneId.RAID) || player.isInStoreMode() || player.isRooted() || player.getKarma() > 0 || player.isInOlympiadMode() || player.isOlympiadProtection() || player.isFestivalParticipant() || player.getFirstLog()))
+					if (!player.isAio() || !player.isAioEterno() || !(player.isInsideZone(ZoneId.TOURNAMENT) || player.isDead() ||TvTEvent.isPlayerParticipant(player.getObjectId()) && TvTEvent.isStarted()  || player._inEventCTF || player.isInArenaEvent() || player.isInsideZone(ZoneId.BOSS) || player.isInsideZone(ZoneId.RAID) || player.isInStoreMode() || player.isRooted() || player.getKarma() > 0 || player.isInOlympiadMode() || player.isOlympiadProtection() || player.isFestivalParticipant() || player.getFirstLog()))
 					{
 						
 						ThreadPool.schedule(new Runnable()

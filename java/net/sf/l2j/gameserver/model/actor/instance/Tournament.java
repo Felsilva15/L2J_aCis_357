@@ -1,5 +1,9 @@
 package net.sf.l2j.gameserver.model.actor.instance;
 
+import java.util.List;
+import java.util.StringTokenizer;
+
+import net.sf.l2j.Config;
 import net.sf.l2j.events.Arena1x1;
 import net.sf.l2j.events.Arena2x2;
 import net.sf.l2j.events.Arena5x5;
@@ -18,13 +22,9 @@ import net.sf.l2j.gameserver.network.serverpackets.ActionFailed;
 import net.sf.l2j.gameserver.network.serverpackets.ExShowScreenMessage;
 import net.sf.l2j.gameserver.network.serverpackets.NpcHtmlMessage;
 
-import java.util.List;
-import java.util.StringTokenizer;
-
-import net.sf.l2j.Config;
-
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 public class Tournament extends Folk
@@ -210,7 +210,7 @@ public class Tournament extends Folk
 				player.sendMessage("Tournament: You or your member is registered in the Olympiad.");
 				return;
 			}
-			else if (player._inEventTvT || player._inEventCTF)
+			else if (player._inEventCTF || TvTEvent.isPlayerParticipant(player.getObjectId()))
 			{
 				player.sendMessage("Tournament: You already participated in another event!");
 				return;
@@ -379,10 +379,16 @@ public class Tournament extends Folk
 				assist.sendMessage("Tournament: You or your member is registered in the Olympiad.");
 				return;
 			}
-			else if (player._inEventTvT || assist._inEventTvT || player._inEventCTF || assist._inEventCTF)
+			else if (player._inEventCTF || assist._inEventCTF)
 			{
 				player.sendMessage("Tournament: You already participated in another event!");
 				assist.sendMessage("Tournament: You already participated in another event!");
+				return;
+			}
+			
+			else if (TvTEvent.isPlayerParticipant(player.getObjectId()))
+			{
+				player.sendMessage("You already participated in another event!");
 				return;
 			}
 			else if (KTBEvent.isPlayerParticipant(player.getObjectId()))
@@ -583,7 +589,7 @@ public class Tournament extends Folk
 				player.sendMessage("You already participated in another event!");
 				return;
 			}
-			else if (player._inEventTvT || assist._inEventTvT || assist2._inEventTvT || assist3._inEventTvT || assist4._inEventTvT || player._inEventCTF || assist._inEventCTF || assist2._inEventCTF || assist3._inEventCTF || assist4._inEventCTF)
+			else if (player._inEventCTF || assist._inEventCTF || assist2._inEventCTF || assist3._inEventCTF || assist4._inEventCTF)
 			{
 				player.sendMessage("Tournament: You already participated in TvT event!");
 				assist.sendMessage("Tournament: You already participated in TvT event!");
@@ -592,7 +598,11 @@ public class Tournament extends Folk
 				assist4.sendMessage("Tournament: You already participated in TvT event!");
 				return;
 			}
-			
+			else if (TvTEvent.isPlayerParticipant(player.getObjectId()))
+			{
+				player.sendMessage("You already participated in another event!");
+				return;
+			}
 			L2Party plparty = player.getParty();
 			for (Player ppl : plparty.getPartyMembers()) {
 				if (ppl != null)
@@ -936,7 +946,7 @@ public class Tournament extends Folk
 				player.sendMessage("You already participated in another event!");
 				return;
 			}
-			else if (player._inEventTvT || assist._inEventTvT || assist2._inEventTvT || assist3._inEventTvT || assist4._inEventTvT || assist5._inEventTvT || assist6._inEventTvT || assist7._inEventTvT || assist8._inEventTvT || player._inEventCTF || assist._inEventCTF || assist2._inEventCTF || assist3._inEventCTF || assist4._inEventCTF || assist5._inEventCTF || assist6._inEventCTF || assist7._inEventCTF || assist8._inEventCTF)
+			else if (player._inEventCTF || assist._inEventCTF || assist2._inEventCTF || assist3._inEventCTF || assist4._inEventCTF || assist5._inEventCTF || assist6._inEventCTF || assist7._inEventCTF || assist8._inEventCTF)
 			{
 				player.sendMessage("Tournament: You already participated in TvT event!");
 				assist.sendMessage("Tournament: You already participated in TvT event!");
@@ -949,7 +959,11 @@ public class Tournament extends Folk
 				assist8.sendMessage("Tournament: You already participated in TvT event!");
 				return;
 			}
-			
+			else if (TvTEvent.isPlayerParticipant(player.getObjectId())) 
+			{
+				player.sendMessage("You already participated in another event!");
+				return;
+			}
 			L2Party plparty = player.getParty();
 			for (Player ppl : plparty.getPartyMembers()) {
 				if (ppl != null)
@@ -1317,9 +1331,14 @@ public class Tournament extends Folk
 		
 		else if (command.startsWith("tournament_observe"))
 		{
-			if (player._inEventTvT || player._inEventCTF)
+//			if (player._inEventTvT || player._inEventCTF)
+//			{
+//				player.sendMessage("Tournament: Remove your participation from the event!");
+//				return;
+//			}
+			if (TvTEvent.isPlayerParticipant(player.getObjectId())) 
 			{
-				player.sendMessage("Tournament: Remove your participation from the event!");
+				player.sendMessage("You already participated in another event!");
 				return;
 			}
 			if (KTBEvent.isPlayerParticipant(player.getObjectId()))

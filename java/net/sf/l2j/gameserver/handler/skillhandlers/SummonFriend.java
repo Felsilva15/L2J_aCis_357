@@ -1,7 +1,7 @@
 package net.sf.l2j.gameserver.handler.skillhandlers;
 
+import net.sf.l2j.commons.math.MathUtil;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.handler.ISkillHandler;
 import net.sf.l2j.gameserver.model.L2Skill;
 import net.sf.l2j.gameserver.model.WorldObject;
@@ -12,10 +12,9 @@ import net.sf.l2j.gameserver.network.serverpackets.ConfirmDlg;
 import net.sf.l2j.gameserver.network.serverpackets.SystemMessage;
 import net.sf.l2j.gameserver.templates.skills.L2SkillType;
 
-import net.sf.l2j.commons.math.MathUtil;
-
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 /**
@@ -50,9 +49,14 @@ public class SummonFriend implements ISkillHandler
 			player.sendMessage("You cant use this skill in event.");
 			return;
 		}
-		if ((TvT.is_started() && player._inEventTvT) || (CTF.is_started() && player._inEventCTF) || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted())
+		if ((CTF.is_started() && player._inEventCTF) || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted())
 		{
 			player.sendMessage("You cannot use this skill in Event.");
+			return;
+		}
+		if ((TvTEvent.isPlayerParticipant(player.getObjectId()) && TvTEvent.isStarted()))
+		{
+			player.sendMessage("You cant use this skill in event.");
 			return;
 		}
 		if ((DMEvent.isPlayerParticipant(player.getObjectId()) && DMEvent.isStarted()))

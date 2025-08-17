@@ -1,7 +1,6 @@
 package net.sf.l2j.gameserver.skills.l2skills;
 
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.data.MapRegionTable;
 import net.sf.l2j.gameserver.data.MapRegionTable.TeleportType;
 import net.sf.l2j.gameserver.model.L2Skill;
@@ -15,6 +14,7 @@ import net.sf.l2j.gameserver.templates.skills.L2SkillType;
 
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 public class L2SkillTeleport extends L2Skill
@@ -64,7 +64,7 @@ public class L2SkillTeleport extends L2Skill
 				if (targetChar.isFestivalParticipant() || targetChar.isInJail() || targetChar.isInDuel())
 					continue;
 				
-				if ((TvT.is_started() && targetChar._inEventTvT) || (CTF.is_started() && targetChar._inEventCTF) || targetChar.isArenaProtection() || KTBEvent.isPlayerParticipant(targetChar.getObjectId()) && KTBEvent.isStarted() || DMEvent.isStarted() && DMEvent.isPlayerParticipant(targetChar.getObjectId()) || FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(targetChar.getObjectId()))
+				if ((TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(targetChar.getObjectId())) || (CTF.is_started() && targetChar._inEventCTF) || targetChar.isArenaProtection() || KTBEvent.isPlayerParticipant(targetChar.getObjectId()) && KTBEvent.isStarted() || DMEvent.isStarted() && DMEvent.isPlayerParticipant(targetChar.getObjectId()) || FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(targetChar.getObjectId()))
 				{
 					targetChar.sendMessage("You can't use escape skill in Event.");
 					continue;

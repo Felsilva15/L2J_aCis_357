@@ -19,7 +19,7 @@ public final class RequestOlympiadMatchList extends L2GameClientPacket
 	protected void runImpl()
 	{
 		final Player activeChar = getClient().getActiveChar();
-		if (activeChar == null || !activeChar.isInObserverMode() || activeChar.isArenaObserv() || activeChar.isEventObserver() || activeChar.isZoneObserver() || activeChar._inEventTvT || activeChar._inEventCTF)
+		if (activeChar == null || !activeChar.isInObserverMode() || activeChar.isArenaObserv() || activeChar.isEventObserver() || activeChar.isZoneObserver()  || activeChar._inEventCTF)
 			return;
 
 			int i = 0;

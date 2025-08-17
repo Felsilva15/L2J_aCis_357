@@ -1,7 +1,8 @@
 package net.sf.l2j.gameserver.network.clientpackets;
 
+import net.sf.l2j.Config;
+import net.sf.l2j.commons.concurrent.ThreadPool;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.data.MapRegionTable;
 import net.sf.l2j.gameserver.data.MapRegionTable.TeleportType;
 import net.sf.l2j.gameserver.instancemanager.CastleManager;
@@ -15,11 +16,9 @@ import net.sf.l2j.gameserver.model.entity.Siege.SiegeSide;
 import net.sf.l2j.gameserver.model.location.Location;
 import net.sf.l2j.gameserver.model.pledge.Clan;
 
-import net.sf.l2j.Config;
-import net.sf.l2j.commons.concurrent.ThreadPool;
-
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 public final class RequestRestartPoint extends L2GameClientPacket
@@ -56,7 +55,7 @@ public final class RequestRestartPoint extends L2GameClientPacket
 			
 			long check = _player.getDeathTimer() + 2000;
 			
-			if (!_player._inEventTvT && !_player._inEventCTF && System.currentTimeMillis() < check)
+			if (!_player._inEventCTF && System.currentTimeMillis() < check)
 			{
 				ThreadPool.schedule(new Runnable()
 				{
@@ -78,7 +77,7 @@ public final class RequestRestartPoint extends L2GameClientPacket
 				return;
 			}
 			
-			if ((TvT.is_started() && _player._inEventTvT) || (CTF.is_started() && _player._inEventCTF))
+			if ((CTF.is_started() && _player._inEventCTF))
 				return;
 			
 			// Enforce type.
@@ -188,6 +187,9 @@ public final class RequestRestartPoint extends L2GameClientPacket
 		final Player player = getClient().getActiveChar();
 		if (player == null)
 			return;
+		
+		if (TvTEvent.isPlayerParticipant(player.getObjectId()) && TvTEvent.isStarted())
+			return;	
 		
 		if (KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted())
 			return;	

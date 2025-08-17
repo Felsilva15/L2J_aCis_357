@@ -15,7 +15,6 @@ import net.sf.l2j.Config;
 import net.sf.l2j.commons.concurrent.ThreadPool;
 
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.data.CharTemplateTable;
 import net.sf.l2j.gameserver.data.ItemTable;
 import net.sf.l2j.gameserver.data.PlayerNameTable;
@@ -876,7 +875,6 @@ public class Phantom_Attack
 	                !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) &&
 	                (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) &&
 	                ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), Config.PHANTOM_MAGE_RANGE / 2, false, false) &&
-	                !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) &&
 	                !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
 	            {
 	                targetList.add((Player) obj);
@@ -891,12 +889,12 @@ public class Phantom_Attack
 	                !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) &&
 	                (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) &&
 	                ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), Config.PHANTOM_MAGE_RANGE / 2, false, false) &&
-	                !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) &&
 	                !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
 	            {
 	                targetList.add((Player) obj);
 	            }
 	        }
+
 	        else if (obj instanceof Player)
 	        {
 	            if (!((Player) obj).isDead() &&
@@ -905,12 +903,12 @@ public class Phantom_Attack
 	                !(((Player) obj).isGM() && ((Player) obj).getAppearance().getInvisible()) &&
 	                (((Player) obj).getPvpFlag() > 0 || ((Player) obj).getKarma() > 0) &&
 	                ((Player) obj).isInsideRadius(player.getX(), player.getY(), player.getZ(), Config.PHANTOM_MAGE_RANGE / 2, false, false) &&
-	                !(((Player) obj)._inEventTvT && (TvT.is_started() || TvT.is_teleport())) &&
 	                !(((Player) obj)._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
 	            {
 	                targetList.add((Player) obj);
 	            }
 	        }
+
 	    }
 		
 		if (targetList.size() == 0)
@@ -1026,55 +1024,53 @@ public class Phantom_Attack
 	}*/
 	static void doCast(final Player player, final Player target)
 	{
-		if (target != null && target.isAgathion())
-			return; // ignora agathion como alvo
+	    if (target != null && target.isAgathion())
+	        return; // ignora agathion como alvo
 
-		if (!player.isDead() && player.getTarget() != null && !target.isDead() &&
-		    (target.getPvpFlag() != 0 || target.getKarma() != 0) &&
-		    !(target._inEventTvT && TvT.is_started()) &&
-		    !(target._inEventCTF && CTF.is_started()) &&
-		    (player.getZ() > (target.getZ() + 100)))
-		{
-			Seguir(player, target);
-			return;
-		}
-		else if (!player.isDead() && player.getTarget() != null && !target.isDead() &&
-		         (target.getPvpFlag() != 0 || target.getKarma() != 0) &&
-		         !(target._inEventTvT && TvT.is_started()) &&
-		         !(target._inEventCTF && CTF.is_started()) &&
-		         !GeoEngine.getInstance().canSeeTarget(player, target))
-		{
-			Seguir(player, target);
-			return;
-		}
-		else if (!player.isDead() && (target.isDead() || player.getTarget() == null ||
-		         (target.getPvpFlag() == 0 && target.getKarma() == 0) ||
-		         (target._inEventTvT && TvT.is_started()) ||
-		         (target._inEventCTF && CTF.is_started())))
-		{
-			player.stopMove(null);
-			player.setTarget(null);
-			doCastlist(player);
-			return;
-		}
+	    if (!player.isDead() && player.getTarget() != null && !target.isDead() &&
+	        (target.getPvpFlag() != 0 || target.getKarma() != 0) &&
+	        !(target._inEventCTF && CTF.is_started()) &&
+	        (player.getZ() > (target.getZ() + 100)))
+	    {
+	        Seguir(player, target);
+	        return;
+	    }
+	    else if (!player.isDead() && player.getTarget() != null && !target.isDead() &&
+	             (target.getPvpFlag() != 0 || target.getKarma() != 0) &&
+	             !(target._inEventCTF && CTF.is_started()) &&
+	             !GeoEngine.getInstance().canSeeTarget(player, target))
+	    {
+	        Seguir(player, target);
+	        return;
+	    }
+	    else if (!player.isDead() && (target.isDead() || player.getTarget() == null ||
+	             (target.getPvpFlag() == 0 && target.getKarma() == 0) ||
+	             (target._inEventCTF && CTF.is_started())))
+	    {
+	        player.stopMove(null);
+	        player.setTarget(null);
+	        doCastlist(player);
+	        return;
+	    }
 
-		if (player.isPhantomArchMage())
-			Mage_Surrender(player, target, 1083, 17, Config.PHANTOM_SURRENDER_INTERVAL, 25);
-		else if (player.isPhantomMysticMuse())
-			Mage_Surrender(player, target, 1071, 14, Config.PHANTOM_SURRENDER_INTERVAL, 25);
-		else if (player.isPhantomStormScream())
-			Mage_Surrender(player, target, 1074, 14, Config.PHANTOM_SURRENDER_INTERVAL, 25);
+	    if (player.isPhantomArchMage())
+	        Mage_Surrender(player, target, 1083, 17, Config.PHANTOM_SURRENDER_INTERVAL, 25);
+	    else if (player.isPhantomMysticMuse())
+	        Mage_Surrender(player, target, 1071, 14, Config.PHANTOM_SURRENDER_INTERVAL, 25);
+	    else if (player.isPhantomStormScream())
+	        Mage_Surrender(player, target, 1074, 14, Config.PHANTOM_SURRENDER_INTERVAL, 25);
 
-		if (!player.isDead() && player.isPhantomArchMage()) {
-			Archmage_Attack_Target(player, target);
-		}
-		else if (!player.isDead() && player.isPhantomMysticMuse()) {
-			Mysticmuse_Attack_Target(player, target);
-		}
-		else if (!player.isDead() && player.isPhantomStormScream()) {
-			Stormscream_Attack_Target(player, target);
-		}
+	    if (!player.isDead() && player.isPhantomArchMage()) {
+	        Archmage_Attack_Target(player, target);
+	    }
+	    else if (!player.isDead() && player.isPhantomMysticMuse()) {
+	        Mysticmuse_Attack_Target(player, target);
+	    }
+	    else if (!player.isDead() && player.isPhantomStormScream()) {
+	        Stormscream_Attack_Target(player, target);
+	    }
 	}
+
 
 	
 	static void Mage_Surrender(Player player, Player target, int skill_id, int skill_level, int delay, int random)
@@ -1121,222 +1117,243 @@ public class Phantom_Attack
 		
 		if (!player.isDead() && !player.isAllSkillsDisabled() && !player.isAttackP())
 		{
-			checkRange(player, target);
-			if (!player.isDead() && player.isInsideRadius(target.getX(), target.getY(), target.getZ(), Config.PHANTOM_MAGE_RANGE, false, false) && GeoEngine.getInstance().canSeeTarget(player, target) && (target.getPvpFlag() > 0 || target.getKarma() > 0) && !(target._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(target._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-			{
-				player.stopMove(null);
-				player.getAI().setIntention(CtrlIntention.FOLLOW, null);
-				player.broadcastPacket(new MagicSkillUse(player, target, skill_id, skill_level, Config.PHANTOM_ARCHMAGE_EFFECT, 0, false));
-				if (Config.ALLOW_PHANTOM_PLAYERS_EFFECT_SHOT){
-				//player.broadcastPacket(new MagicSkillUse(player, player, 2166, 1, 0, 0));
-				player.broadcastPacket(new MagicSkillUse(player, player, 2164, 1, 0, 0));
-				}
-				target.getActingPlayer().getAI().clientStartAutoAttack();
-				player.getActingPlayer().getAI().clientStartAutoAttack();
-			
-				if (player.getPvpFlag() == 0)
-				{
-					player.setPvpFlag(1);
-					player.broadcastUserInfo();					
-				}
-								
-				double mDef = target.getMDef(player, null);
-				double damage = 91 * Math.sqrt(Config.POWER_PHANTOM) / mDef * 1000;
-				
-				if (Rnd.get(100) < Config.PHANTOM_ARCHMAGE_PERCENTAGE)
-					target.reduceCurrentHp(damage, player, null);
-				else
-					target.reduceCurrentHp(damage / 2, player, null);
-				
-				try
-				{
-					Thread.sleep(delay);
-				}
-				catch (InterruptedException e)
-				{
-				}
-				player.getAI().setIntention(CtrlIntention.FOLLOW, null);
-			}
+		    checkRange(player, target);
+		    if (!player.isDead() 
+		        && player.isInsideRadius(target.getX(), target.getY(), target.getZ(), Config.PHANTOM_MAGE_RANGE, false, false) 
+		        && GeoEngine.getInstance().canSeeTarget(player, target) 
+		        && (target.getPvpFlag() > 0 || target.getKarma() > 0) 
+		        && !(target._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+		    {
+		        player.stopMove(null);
+		        player.getAI().setIntention(CtrlIntention.FOLLOW, null);
+		        player.broadcastPacket(new MagicSkillUse(player, target, skill_id, skill_level, Config.PHANTOM_ARCHMAGE_EFFECT, 0, false));
+		        if (Config.ALLOW_PHANTOM_PLAYERS_EFFECT_SHOT){
+		            //player.broadcastPacket(new MagicSkillUse(player, player, 2166, 1, 0, 0));
+		            player.broadcastPacket(new MagicSkillUse(player, player, 2164, 1, 0, 0));
+		        }
+		        target.getActingPlayer().getAI().clientStartAutoAttack();
+		        player.getActingPlayer().getAI().clientStartAutoAttack();
+
+		        if (player.getPvpFlag() == 0)
+		        {
+		            player.setPvpFlag(1);
+		            player.broadcastUserInfo();					
+		        }
+
+		        double mDef = target.getMDef(player, null);
+		        double damage = 91 * Math.sqrt(Config.POWER_PHANTOM) / mDef * 1000;
+
+		        if (Rnd.get(100) < Config.PHANTOM_ARCHMAGE_PERCENTAGE)
+		            target.reduceCurrentHp(damage, player, null);
+		        else
+		            target.reduceCurrentHp(damage / 2, player, null);
+
+		        try
+		        {
+		            Thread.sleep(delay);
+		        }
+		        catch (InterruptedException e)
+		        {
+		        }
+		        player.getAI().setIntention(CtrlIntention.FOLLOW, null);
+		    }
 		}
 	}
 	
 	static void Archmage_Attack_Target(Player player, Player target)
 	{
-		boolean doAtack = true;
-		
-		while (doAtack)
-		{
-			if (player.isAttackP())
-				doAtack = false;
-			else if (!target.isDead() && player.getTarget() != null && (target.getPvpFlag() != 0 || target.getKarma() != 0) && GeoEngine.getInstance().canSeeTarget(player, target))
-			{
-				doAtack = true;
-				Archmage_Attack(player, target, 1230, 1, Config.PHANTOM_ARCHMAGE_DANO_INTERVAL);
-			}
-			else if (!player.isDead() && player.getTarget() != null && !target.isDead() && (target.getPvpFlag() != 0 || target.getKarma() != 0) && !(target._inEventTvT && TvT.is_started()) && !(target._inEventCTF && CTF.is_started()) && !GeoEngine.getInstance().canSeeTarget(player, target))
-			{
-				doAtack = false;
-				Seguir(player, target);
-			}
-			else if (!player.isDead() && (target.isDead() || player.getTarget() == null || (target.getPvpFlag() == 0 && target.getKarma() == 0) || (target._inEventTvT && TvT.is_started()) || (target._inEventCTF && CTF.is_started())))
-			{
-				doAtack = false;
-				player.stopMove(null);
-				player.setTarget(null);
-				doCastlist(player);
-			}
-			else
-				doAtack = false;
-		}
+	    boolean doAtack = true;
+
+	    while (doAtack)
+	    {
+	        if (player.isAttackP())
+	            doAtack = false;
+	        else if (!target.isDead() && player.getTarget() != null && (target.getPvpFlag() != 0 || target.getKarma() != 0) && GeoEngine.getInstance().canSeeTarget(player, target))
+	        {
+	            doAtack = true;
+	            Archmage_Attack(player, target, 1230, 1, Config.PHANTOM_ARCHMAGE_DANO_INTERVAL);
+	        }
+	        else if (!player.isDead() && player.getTarget() != null && !target.isDead() && (target.getPvpFlag() != 0 || target.getKarma() != 0) && !(target._inEventCTF && CTF.is_started()) && !GeoEngine.getInstance().canSeeTarget(player, target))
+	        {
+	            doAtack = false;
+	            Seguir(player, target);
+	        }
+	        else if (!player.isDead() && (target.isDead() || player.getTarget() == null || (target.getPvpFlag() == 0 && target.getKarma() == 0) || (target._inEventCTF && CTF.is_started())))
+	        {
+	            doAtack = false;
+	            player.stopMove(null);
+	            player.setTarget(null);
+	            doCastlist(player);
+	        }
+	        else
+	            doAtack = false;
+	    }
 	}
+
 	
 	static void Mysticmuse_Attack(Player player, Player target, int skill_id, int skill_level, int delay)
 	{
-		if (player.isSpawnProtected())
-			player.setSpawnProtection(false);
-		
-		if (!player.isDead() && !player.isAllSkillsDisabled() && !player.isAttackP())
-		{
-			checkRange(player, target);
-			if (!player.isDead() && player.isInsideRadius(target.getX(), target.getY(), target.getZ(), Config.PHANTOM_MAGE_RANGE, false, false) && GeoEngine.getInstance().canSeeTarget(player, target) && (target.getPvpFlag() > 0 || target.getKarma() > 0) && !(target._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(target._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-			{
-				player.stopMove(null);
-				player.getAI().setIntention(CtrlIntention.FOLLOW, null);
-				player.broadcastPacket(new MagicSkillUse(player, target, skill_id, skill_level, Config.PHANTOM_SPELLSINGER_EFFECT, 0, false));
-				target.getActingPlayer().getAI().clientStartAutoAttack();
-				player.getActingPlayer().getAI().clientStartAutoAttack();
-				
-				if (player.getPvpFlag() == 0)
-				{
-					player.setPvpFlag(1);
-					player.broadcastUserInfo();					
-				}
-				
-				double mDef = target.getMDef(player, null);
-				double damage = 91 * Math.sqrt(Config.POWER_PHANTOM) / mDef * 1000;
-				
-				if (Rnd.get(100) < Config.PHANTOM_SPELLSINGER_PERCENTAGE)
-					target.reduceCurrentHp(damage, player, null);
-				else
-					target.reduceCurrentHp(damage / 2, player, null);
-				
-				try
-				{
-					Thread.sleep(delay);
-				}
-				catch (InterruptedException e)
-				{
-				}
-				player.getAI().setIntention(CtrlIntention.FOLLOW, null);
-			}
-		}
+	    if (player.isSpawnProtected())
+	        player.setSpawnProtection(false);
+	    
+	    if (!player.isDead() && !player.isAllSkillsDisabled() && !player.isAttackP())
+	    {
+	        checkRange(player, target);
+	        if (!player.isDead() 
+	            && player.isInsideRadius(target.getX(), target.getY(), target.getZ(), Config.PHANTOM_MAGE_RANGE, false, false) 
+	            && GeoEngine.getInstance().canSeeTarget(player, target) 
+	            && (target.getPvpFlag() > 0 || target.getKarma() > 0) 
+	            && !(target._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	        {
+	            player.stopMove(null);
+	            player.getAI().setIntention(CtrlIntention.FOLLOW, null);
+	            player.broadcastPacket(new MagicSkillUse(player, target, skill_id, skill_level, Config.PHANTOM_SPELLSINGER_EFFECT, 0, false));
+	            target.getActingPlayer().getAI().clientStartAutoAttack();
+	            player.getActingPlayer().getAI().clientStartAutoAttack();
+	            
+	            if (player.getPvpFlag() == 0)
+	            {
+	                player.setPvpFlag(1);
+	                player.broadcastUserInfo();                    
+	            }
+	            
+	            double mDef = target.getMDef(player, null);
+	            double damage = 91 * Math.sqrt(Config.POWER_PHANTOM) / mDef * 1000;
+	            
+	            if (Rnd.get(100) < Config.PHANTOM_SPELLSINGER_PERCENTAGE)
+	                target.reduceCurrentHp(damage, player, null);
+	            else
+	                target.reduceCurrentHp(damage / 2, player, null);
+	            
+	            try
+	            {
+	                Thread.sleep(delay);
+	            }
+	            catch (InterruptedException e)
+	            {
+	            }
+	            player.getAI().setIntention(CtrlIntention.FOLLOW, null);
+	        }
+	    }
 	}
+
 	
 	static void Mysticmuse_Attack_Target(Player player, Player target)
 	{
-		boolean doAtack = true;
-		
-		while (doAtack)
-		{
-			if (player.isAttackP())
-				doAtack = false;
-			else if (!target.isDead() && player.getTarget() != null && (target.getPvpFlag() != 0 || target.getKarma() != 0) && GeoEngine.getInstance().canSeeTarget(player, target))
-			{
-				doAtack = true;
-				Mysticmuse_Attack(player, target, 1235, 1, Config.PHANTOM_SPELLSINGER_DANO_INTERVAL);
-			}
-			else if (!player.isDead() && player.getTarget() != null && !target.isDead() && (target.getPvpFlag() != 0 || target.getKarma() != 0) && !(target._inEventTvT && TvT.is_started()) && !(target._inEventCTF && CTF.is_started()) && !GeoEngine.getInstance().canSeeTarget(player, target))
-			{
-				doAtack = false;
-				Seguir(player, target);
-			}
-			else if (!player.isDead() && (target.isDead() || player.getTarget() == null || (target.getPvpFlag() == 0 && target.getKarma() == 0) || (target._inEventTvT && TvT.is_started()) || (target._inEventCTF && CTF.is_started())))
-			{
-				doAtack = false;
-				player.stopMove(null);
-				player.setTarget(null);
-				doCastlist(player);
-			}
-			else
-				doAtack = false;
-		}
+	    boolean doAtack = true;
+
+	    while (doAtack)
+	    {
+	        if (player.isAttackP())
+	            doAtack = false;
+	        else if (!target.isDead() && player.getTarget() != null && (target.getPvpFlag() != 0 || target.getKarma() != 0) && GeoEngine.getInstance().canSeeTarget(player, target))
+	        {
+	            doAtack = true;
+	            Mysticmuse_Attack(player, target, 1235, 1, Config.PHANTOM_SPELLSINGER_DANO_INTERVAL);
+	        }
+	        else if (!player.isDead() && player.getTarget() != null && !target.isDead() && (target.getPvpFlag() != 0 || target.getKarma() != 0) 
+	                 && !(target._inEventCTF && CTF.is_started()) && !GeoEngine.getInstance().canSeeTarget(player, target))
+	        {
+	            doAtack = false;
+	            Seguir(player, target);
+	        }
+	        else if (!player.isDead() && (target.isDead() || player.getTarget() == null || (target.getPvpFlag() == 0 && target.getKarma() == 0) 
+	                 || (target._inEventCTF && CTF.is_started())))
+	        {
+	            doAtack = false;
+	            player.stopMove(null);
+	            player.setTarget(null);
+	            doCastlist(player);
+	        }
+	        else
+	            doAtack = false;
+	    }
 	}
+
 	
 	static void Stormscream_Attack(Player player, Player target, int skill_id, int skill_level, int delay)
 	{
-		if (player.isSpawnProtected())
-			player.setSpawnProtection(false);
-		
-		if (!player.isDead() && !player.isAllSkillsDisabled() && !player.isAttackP())
-		{
-			checkRange(player, target);
-			if (!player.isDead() && player.isInsideRadius(target.getX(), target.getY(), target.getZ(), Config.PHANTOM_MAGE_RANGE, false, false) && GeoEngine.getInstance().canSeeTarget(player, target) && (target.getPvpFlag() > 0 || target.getKarma() > 0) && !(target._inEventTvT && (TvT.is_started() || TvT.is_teleport())) && !(target._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
-			{
-				player.stopMove(null);
-				player.getAI().setIntention(CtrlIntention.FOLLOW, null);
-				player.broadcastPacket(new MagicSkillUse(player, target, skill_id, skill_level, Config.PHANTOM_SPELLHOLLER_EFFECT, 0, false));
-				if (Config.ALLOW_PHANTOM_PLAYERS_EFFECT_SHOT){
-				//player.broadcastPacket(new MagicSkillUse(player, player, 2166, 1, 0, 0));
-				player.broadcastPacket(new MagicSkillUse(player, player, 2164, 1, 0, 0));
-				}
-				target.getActingPlayer().getAI().clientStartAutoAttack();
-				player.getActingPlayer().getAI().clientStartAutoAttack();
-				
-				if (player.getPvpFlag() == 0)
-				{
-					player.setPvpFlag(1);
-					player.broadcastUserInfo();					
-				}
+	    if (player.isSpawnProtected())
+	        player.setSpawnProtection(false);
 
-				double mDef = target.getMDef(player, null);
-				double damage = 91 * Math.sqrt(Config.POWER_PHANTOM) / mDef * 1000;
-				
-				if (Rnd.get(100) < Config.PHANTOM_SPELLHOLLER_PERCENTAGE)
-					target.reduceCurrentHp(damage, player, null);
-				else
-					target.reduceCurrentHp(damage / 2, player, null);
-				
-				try
-				{
-					Thread.sleep(delay);
-				}
-				catch (InterruptedException e)
-				{
-				}
-				player.getAI().setIntention(CtrlIntention.FOLLOW, null);
-			}
-		}
+	    if (!player.isDead() && !player.isAllSkillsDisabled() && !player.isAttackP())
+	    {
+	        checkRange(player, target);
+	        if (!player.isDead() 
+	            && player.isInsideRadius(target.getX(), target.getY(), target.getZ(), Config.PHANTOM_MAGE_RANGE, false, false) 
+	            && GeoEngine.getInstance().canSeeTarget(player, target) 
+	            && (target.getPvpFlag() > 0 || target.getKarma() > 0) 
+	            && !(target._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+	        {
+	            player.stopMove(null);
+	            player.getAI().setIntention(CtrlIntention.FOLLOW, null);
+	            player.broadcastPacket(new MagicSkillUse(player, target, skill_id, skill_level, Config.PHANTOM_SPELLHOLLER_EFFECT, 0, false));
+	            
+	            if (Config.ALLOW_PHANTOM_PLAYERS_EFFECT_SHOT){
+	                //player.broadcastPacket(new MagicSkillUse(player, player, 2166, 1, 0, 0));
+	                player.broadcastPacket(new MagicSkillUse(player, player, 2164, 1, 0, 0));
+	            }
+	            
+	            target.getActingPlayer().getAI().clientStartAutoAttack();
+	            player.getActingPlayer().getAI().clientStartAutoAttack();
+
+	            if (player.getPvpFlag() == 0)
+	            {
+	                player.setPvpFlag(1);
+	                player.broadcastUserInfo();                    
+	            }
+
+	            double mDef = target.getMDef(player, null);
+	            double damage = 91 * Math.sqrt(Config.POWER_PHANTOM) / mDef * 1000;
+
+	            if (Rnd.get(100) < Config.PHANTOM_SPELLHOLLER_PERCENTAGE)
+	                target.reduceCurrentHp(damage, player, null);
+	            else
+	                target.reduceCurrentHp(damage / 2, player, null);
+
+	            try
+	            {
+	                Thread.sleep(delay);
+	            }
+	            catch (InterruptedException e)
+	            {
+	            }
+	            player.getAI().setIntention(CtrlIntention.FOLLOW, null);
+	        }
+	    }
 	}
+
 	
 	static void Stormscream_Attack_Target(Player player, Player target)
 	{
-		boolean doAtack = true;
-		
-		while (doAtack)
-		{
-			if (player.isAttackP())
-				doAtack = false;
-			else if (!target.isDead() && player.getTarget() != null && (target.getPvpFlag() != 0 || target.getKarma() != 0) && GeoEngine.getInstance().canSeeTarget(player, target))
-			{
-				doAtack = true;
-				Stormscream_Attack(player, target, 1239, 1, Config.PHANTOM_SPELLHOLLER_DANO_INTERVAL);
-			}
-			else if (!player.isDead() && player.getTarget() != null && !target.isDead() && (target.getPvpFlag() != 0 || target.getKarma() != 0) && !(target._inEventTvT && TvT.is_started()) && !(target._inEventCTF && CTF.is_started()) && !GeoEngine.getInstance().canSeeTarget(player, target))
-			{
-				doAtack = false;
-				Seguir(player, target);
-			}
-			else if (!player.isDead() && (target.isDead() || player.getTarget() == null || (target.getPvpFlag() == 0 && target.getKarma() == 0) || (target._inEventTvT && TvT.is_started()) || (target._inEventCTF && CTF.is_started())))
-			{
-				doAtack = false;
-				player.stopMove(null);
-				player.setTarget(null);
-				doCastlist(player);
-			}
-			else
-				doAtack = false;
-		}
+	    boolean doAtack = true;
+	    
+	    while (doAtack)
+	    {
+	        if (player.isAttackP())
+	            doAtack = false;
+	        else if (!target.isDead() && player.getTarget() != null && (target.getPvpFlag() != 0 || target.getKarma() != 0) && GeoEngine.getInstance().canSeeTarget(player, target))
+	        {
+	            doAtack = true;
+	            Stormscream_Attack(player, target, 1239, 1, Config.PHANTOM_SPELLHOLLER_DANO_INTERVAL);
+	        }
+	        else if (!player.isDead() && player.getTarget() != null && !target.isDead() && (target.getPvpFlag() != 0 || target.getKarma() != 0) && !(target._inEventCTF && CTF.is_started()) && !GeoEngine.getInstance().canSeeTarget(player, target))
+	        {
+	            doAtack = false;
+	            Seguir(player, target);
+	        }
+	        else if (!player.isDead() && (target.isDead() || player.getTarget() == null || (target.getPvpFlag() == 0 && target.getKarma() == 0) || (target._inEventCTF && CTF.is_started())))
+	        {
+	            doAtack = false;
+	            player.stopMove(null);
+	            player.setTarget(null);
+	            doCastlist(player);
+	        }
+	        else
+	            doAtack = false;
+	    }
 	}
+
 	
 	static void checkRange(Player player, Player target)
 	{

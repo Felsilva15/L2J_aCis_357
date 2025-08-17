@@ -13,7 +13,6 @@ import net.sf.l2j.commons.concurrent.ThreadPool;
 import net.sf.l2j.events.ArenaTask;
 import net.sf.l2j.events.CTF;
 import net.sf.l2j.events.PartyZoneTask;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.Restart;
 import net.sf.l2j.gameserver.communitybbs.Manager.MailBBSManager;
 import net.sf.l2j.gameserver.data.CharTemplateTable;
@@ -29,7 +28,6 @@ import net.sf.l2j.gameserver.instancemanager.ClanHallManager;
 import net.sf.l2j.gameserver.instancemanager.CoupleManager;
 import net.sf.l2j.gameserver.instancemanager.DimensionalRiftManager;
 import net.sf.l2j.gameserver.instancemanager.HeroManager;
-import net.sf.l2j.gameserver.instancemanager.NewsHtml;
 import net.sf.l2j.gameserver.instancemanager.PetitionManager;
 import net.sf.l2j.gameserver.instancemanager.SevenSigns;
 import net.sf.l2j.gameserver.instancemanager.SevenSigns.CabalType;
@@ -87,6 +85,7 @@ import Dev.DollsSystem.DollsTable;
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.ChampionInvade.ChampionInvade;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 import Dev.InstanceFarm.TimeInstanceManager;
 import hwid.Hwid;
@@ -252,6 +251,7 @@ public class EnterWorld extends L2GameClientPacket
 		{
 			activeChar.sendPacket(new CreatureSay(0, 3, ".", "" + Config.CHAMPION_FARM_MESSAGE_TEXT + ":."));
 		}
+		TvTEvent.onLogin(activeChar);
 		KTBEvent.onLogin(activeChar);
 		DMEvent.onLogin(activeChar);
 		FOSEvent.onLogin(activeChar);
@@ -687,9 +687,9 @@ public class EnterWorld extends L2GameClientPacket
 		
 		if (!activeChar.getFirstLog())
 		{
-			if (TvT.is_joining() && Config.SCREN_MSG)
-				activeChar.sendPacket(new ExShowScreenMessage("TvT Event - Register Now!", 6000));
-			else if (CTF.is_joining() && Config.SCREN_MSG)
+		//	if (TvT.is_joining() && Config.SCREN_MSG)
+		//		activeChar.sendPacket(new ExShowScreenMessage("TvT Event - Register Now!", 6000));
+			 if (CTF.is_joining() && Config.SCREN_MSG)
 				activeChar.sendPacket(new ExShowScreenMessage("CTF Event - Register Now!", 6000));
 			else if (PartyZoneTask.is_started())
 				activeChar.sendPacket(new ExShowScreenMessage(Config.PARTY_FARM_MESSAGE_TEXT, Config.PARTY_FARM_MESSAGE_TIME));

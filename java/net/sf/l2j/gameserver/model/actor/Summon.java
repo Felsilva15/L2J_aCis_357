@@ -56,7 +56,7 @@ public abstract class Summon extends Playable
 	public Summon(int objectId, NpcTemplate template, Player owner)
 	{
 		super(objectId, template);
-		
+		setInstance(owner.getInstance(), true);
 		for (L2Skill skill : template.getSkills(SkillType.PASSIVE))
 			addStatFuncs(skill.getStatFuncs(this));
 		

@@ -14,6 +14,20 @@
  */
 package Dev.Event.DeathMatch;
 
+import java.math.BigInteger;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import net.sf.l2j.Config;
+import net.sf.l2j.commons.concurrent.ThreadPool;
+import net.sf.l2j.commons.random.Rnd;
+import net.sf.l2j.commons.util.StringUtil;
 import net.sf.l2j.gameserver.data.DoorTable;
 import net.sf.l2j.gameserver.data.ItemTable;
 import net.sf.l2j.gameserver.data.NpcTable;
@@ -42,23 +56,8 @@ import net.sf.l2j.gameserver.network.serverpackets.MagicSkillUse;
 import net.sf.l2j.gameserver.network.serverpackets.NpcHtmlMessage;
 import net.sf.l2j.gameserver.network.serverpackets.StatusUpdate;
 
-import java.math.BigInteger;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import net.sf.l2j.commons.random.Rnd;
-import net.sf.l2j.commons.util.StringUtil;
-
-import net.sf.l2j.Config;
-import net.sf.l2j.commons.concurrent.ThreadPool;
-
 import Dev.Event.BossEvent.KTBEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 public class DMEvent
@@ -462,14 +461,14 @@ public class DMEvent
 						if (activeChar.isVip())
 						{
 							if (reward.getRewardId() == 5556)
-								activeChar.addItem("DM 1st Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), activeChar, true);
+								activeChar.addItem("DM 1st Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, activeChar, true);
 							else if (reward.getRewardId() == 5556)
-								activeChar.addItem("DM 1st Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), activeChar, true);
+								activeChar.addItem("DM 1st Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, activeChar, true);
 							else
-								activeChar.addItem("DM 1st Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), activeChar, true);
+								activeChar.addItem("DM 1st Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), activeChar, true);
 						}
 	    				else
-	    					activeChar.addItem("DM 1st Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), activeChar, true);
+	    					activeChar.addItem("DM 1st Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), activeChar, true);
 	    			}
 	    		}
 			    break;
@@ -481,14 +480,14 @@ public class DMEvent
 	    				if (activeChar.isVip())
 						{
 							if (reward.getRewardId() == 5556)
-								activeChar.addItem("DM 2nd Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), activeChar, true);
+								activeChar.addItem("DM 2nd Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, activeChar, true);
 							else if (reward.getRewardId() == 5556)
-								activeChar.addItem("DM 2nd Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), activeChar, true);
+								activeChar.addItem("DM 2nd Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, activeChar, true);
 							else
-								activeChar.addItem("DM 2nd Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), activeChar, true);
+								activeChar.addItem("DM 2nd Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), activeChar, true);
 						}
 	    				else
-	    					activeChar.addItem("DM 2nd Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), activeChar, true);
+	    					activeChar.addItem("DM 2nd Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), activeChar, true);
 	    			}
 	    		}
 			    break;
@@ -500,14 +499,14 @@ public class DMEvent
 	    				if (activeChar.isVip())
 						{
 							if (reward.getRewardId() == 5556)
-								activeChar.addItem("DM 3rd Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), activeChar, true);
+								activeChar.addItem("DM 3rd Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, activeChar, true);
 							else if (reward.getRewardId() == 5556)
-								activeChar.addItem("DM 3rd Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), activeChar, true);
+								activeChar.addItem("DM 3rd Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, activeChar, true);
 							else
-								activeChar.addItem("DM 3rd Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), activeChar, true);
+								activeChar.addItem("DM 3rd Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), activeChar, true);
 						}
 	    				else
-	    					activeChar.addItem("DM 3rd Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), activeChar, true);
+	    					activeChar.addItem("DM 3rd Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), activeChar, true);
 	    			}
 	    		}
 			    break;		    
@@ -519,14 +518,14 @@ public class DMEvent
 		    			if (activeChar.isVip())
 						{
 							if (reward.getRewardId() == 5556)
-								activeChar.addItem("DM 4th Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), activeChar, true);
+								activeChar.addItem("DM 4th Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, activeChar, true);
 							else if (reward.getRewardId() == 5556)
-								activeChar.addItem("DM 4th Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), activeChar, true);
+								activeChar.addItem("DM 4th Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, activeChar, true);
 							else
-								activeChar.addItem("DM 4th Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), activeChar, true);
+								activeChar.addItem("DM 4th Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), activeChar, true);
 						}
 	    				else
-		    				activeChar.addItem("DM 4th Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), activeChar, true);
+		    				activeChar.addItem("DM 4th Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), activeChar, true);
 		    		}
 		    	}
 				break;		    
@@ -538,14 +537,14 @@ public class DMEvent
 			    		if (activeChar.isVip())
 						{
 							if (reward.getRewardId() == 5556)
-								activeChar.addItem("DM 5th Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), activeChar, true);
+								activeChar.addItem("DM 5th Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, activeChar, true);
 							else if (reward.getRewardId() == 5556)
-								activeChar.addItem("DM 5th Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), activeChar, true);
+								activeChar.addItem("DM 5th Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, activeChar, true);
 							else
-								activeChar.addItem("DM 5th Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), activeChar, true);
+								activeChar.addItem("DM 5th Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), activeChar, true);
 						}
 	    				else
-			    			activeChar.addItem("DM 5th Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), activeChar, true);
+			    			activeChar.addItem("DM 5th Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), activeChar, true);
 			    	}
 			    }
 				break;		    
@@ -561,14 +560,14 @@ public class DMEvent
 				    		if (activeChar.isVip())
 							{
 								if (reward.getRewardId() == 5556)
-									activeChar.addItem("DM 5AFT Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), activeChar, true);
+									activeChar.addItem("DM 5AFT Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, activeChar, true);
 								else if (reward.getRewardId() == 5556)
-									activeChar.addItem("DM 5AFT Reward", reward.getRewardId(), (int) (Rnd.get(reward.getMin(), reward.getMax()) * Config.RATE_DROP_VIP), activeChar, true);
+									activeChar.addItem("DM 5AFT Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()) * Config.RATE_DROP_VIP, activeChar, true);
 								else
-									activeChar.addItem("DM 5AFT Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), activeChar, true);
+									activeChar.addItem("DM 5AFT Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), activeChar, true);
 							}
 		    				else
-				    			activeChar.addItem("DM 5AFT Reward", reward.getRewardId(), Rnd.get(reward.getMin(), reward.getMax()), activeChar, true);
+				    			activeChar.addItem("DM 5AFT Reward", reward.getRewardId(), Rnd.get(reward.getRewardMin(), reward.getRewardMax()), activeChar, true);
 				    	}
 				    }
 					break;
@@ -899,11 +898,7 @@ public class DMEvent
 				activeChar.sendMessage("AIO charactes are not allowed to participate in events.");
 				return;
 			}
-			else if (activeChar._inEventTvT)
-			{
-				activeChar.sendMessage("You already participated in another event!");
-				return;
-			}
+			
 			else if (FOSEvent.isPlayerParticipant(activeChar.getObjectId()))
 			{
 				activeChar.sendMessage("You already participated in another event!");
@@ -920,6 +915,11 @@ public class DMEvent
 				return;
 			}
 			else if (KTBEvent.isPlayerParticipant(activeChar.getObjectId()))
+			{
+				activeChar.sendMessage("You already participated in another event!");
+				return;
+			}
+			else if (TvTEvent.isPlayerParticipant(activeChar.getObjectId()))
 			{
 				activeChar.sendMessage("You already participated in another event!");
 				return;

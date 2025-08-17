@@ -60,6 +60,7 @@ import net.sf.l2j.util.CloseUtil;
 
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 import phantom.PhantomOld;
 
@@ -915,9 +916,9 @@ public class CTF implements EventTask
 			return false;
 		}
 		
-	    if (Config.TVT_CLOSE_FORT_DOORS)
+	  //  if (Config.CTF_CLOSE_FORT_DOORS)
 	        closeFortDoors(); 
-	      if (Config.TVT_CLOSE_ADEN_COLOSSEUM_DOORS)
+	   //   if (Config.TVT_CLOSE_ADEN_COLOSSEUM_DOORS)
 	        closeAdenColosseumDoors(); 
 		
 		_teleport = false;
@@ -1555,7 +1556,7 @@ public class CTF implements EventTask
 			eventPlayer.sendMessage("You already participated in the event!");
 			return false;
 		}
-		else if (eventPlayer._inEventTvT)
+		else if (TvTEvent.isPlayerParticipant(eventPlayer.getObjectId()))
 		{
 			eventPlayer.sendMessage("You already participated in another event!");
 			return false;
@@ -1692,14 +1693,14 @@ public class CTF implements EventTask
 				if (player.isDead())
 					player.doRevive();
 				
-				if (Config.TVT_SKILL_PROTECT)
-				{
-					for (L2Effect effect : player.getAllEffects())
-					{
-						if (Config.TVT_SKILL_LIST.contains(effect.getSkill().getId()))
-							player.stopSkillEffects(effect.getSkill().getId());
-					}
-				}
+//				if (Config.TVT_SKILL_PROTECT)
+//				{
+//					for (L2Effect effect : player.getAllEffects())
+//					{
+//						if (Config.TVT_SKILL_LIST.contains(effect.getSkill().getId()))
+//							player.stopSkillEffects(effect.getSkill().getId());
+//					}
+//				}
 				
 				if (Config.CTF_ON_START_UNSUMMON_PET)
 				{
@@ -2368,15 +2369,15 @@ public class CTF implements EventTask
 			final int offset = Config.CTF_SPAWN_OFFSET;
 			player.teleToLocation(_teamsX.get(_teams.indexOf(player._teamNameCTF)) + Rnd.get(offset), _teamsY.get(_teams.indexOf(player._teamNameCTF)) + Rnd.get(offset), _teamsZ.get(_teams.indexOf(player._teamNameCTF)), 50);
 			
-			if (Config.TVT_SKILL_PROTECT)
-			{
-				for (L2Effect effect : player.getAllEffects())
-				{
-					
-					if (Config.TVT_SKILL_LIST.contains(effect.getSkill().getId()))
-						player.stopSkillEffects(effect.getSkill().getId());
-				}
-			}
+//			if (Config.TVT_SKILL_PROTECT)
+//			{
+//				for (L2Effect effect : player.getAllEffects())
+//				{
+//					
+//					if (Config.TVT_SKILL_LIST.contains(effect.getSkill().getId()))
+//						player.stopSkillEffects(effect.getSkill().getId());
+//				}
+//			}
 			
 			afterAddDisconnectedPlayerOperations(player);
 			
@@ -3489,7 +3490,7 @@ public class CTF implements EventTask
 		    try {
 		      Thread.sleep(20L);
 		    } catch (InterruptedException ie) {
-		      if (Config.DEBUG_TVT)
+		      if (Config.DEBUG)
 		        ie.printStackTrace(); 
 		      LOGGER.warning("Error, " + ie.getMessage());
 		    } 
@@ -3501,7 +3502,7 @@ public class CTF implements EventTask
 		    try {
 		      Thread.sleep(20L);
 		    } catch (InterruptedException ie) {
-		      if (Config.DEBUG_TVT)
+		      if (Config.DEBUG)
 		        ie.printStackTrace(); 
 		      LOGGER.warning("Error, " + ie.getMessage());
 		    } 

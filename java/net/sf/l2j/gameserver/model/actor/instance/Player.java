@@ -1,9 +1,37 @@
 package net.sf.l2j.gameserver.model.actor.instance;
 
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 
-
+import net.sf.l2j.Config;
+import net.sf.l2j.ConnectionPool;
+import net.sf.l2j.commons.concurrent.ThreadPool;
+import net.sf.l2j.commons.math.MathUtil;
+import net.sf.l2j.commons.random.Rnd;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
+import net.sf.l2j.events.pvpevent.PvPEnchantSystem;
 import net.sf.l2j.events.pvpevent.PvPEvent;
 import net.sf.l2j.gameserver.LoginServerThread;
 import net.sf.l2j.gameserver.communitybbs.BB.Forum;
@@ -30,7 +58,6 @@ import net.sf.l2j.gameserver.handler.IItemHandler;
 import net.sf.l2j.gameserver.handler.ItemHandler;
 import net.sf.l2j.gameserver.handler.admincommandhandlers.AdminEditChar;
 import net.sf.l2j.gameserver.instancemanager.AioManager;
-import net.sf.l2j.gameserver.instancemanager.BotsPvPPreventionManager;
 import net.sf.l2j.gameserver.instancemanager.CastleManager;
 import net.sf.l2j.gameserver.instancemanager.ChatBanManager;
 import net.sf.l2j.gameserver.instancemanager.ChatGlobalManager;
@@ -236,44 +263,12 @@ import net.sf.l2j.gameserver.templates.skills.L2EffectType;
 import net.sf.l2j.gameserver.templates.skills.L2SkillType;
 import net.sf.l2j.gameserver.util.Broadcast;
 import net.sf.l2j.util.CloseUtil;
-import net.sf.l2j.util.Util;
-
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
-
-import net.sf.l2j.commons.math.MathUtil;
-import net.sf.l2j.commons.random.Rnd;
-
-import net.sf.l2j.Config;
-import net.sf.l2j.ConnectionPool;
-import net.sf.l2j.commons.concurrent.ThreadPool;
 
 import Dev.AutoFarm.AutofarmManager;
 import Dev.Event.BossEvent.KTBConfig;
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 import phantom.Phantom_Archers;
 import phantom.Phantom_Attack;
@@ -2233,7 +2228,7 @@ public class Player extends Playable
 		if (checkCast && isCastingNow())
 			return;
 		
-		if ((TvT.is_started() && _inEventTvT) || (CTF.is_started() && _inEventCTF))
+		if ((CTF.is_started() && _inEventCTF))
 		{
 			sendMessage("You can not do this in an event!");
 			return;
@@ -2265,7 +2260,7 @@ public class Player extends Playable
 	 */
 	public void standUp()
 	{
-		if ((TvT.is_sitForced() && _inEventTvT) || (CTF.is_sitForced() && _inEventCTF))
+		if (CTF.is_sitForced() && _inEventCTF)
 		{
 			sendMessage("The Admin/GM handle if you sit or stand in this match!");
 			return;
@@ -3346,11 +3341,11 @@ public class Player extends Playable
 			return false;
 		}
 		
-		if (TvT.is_started() && _inEventTvT && Config.TVT_SKILL_LIST.contains(skill.getId()))
-		{
-			sendPacket(SystemMessage.getSystemMessage(SystemMessageId.S1_CANNOT_BE_USED).addSkillName(skill));
-			return false;
-		}
+//		if (TvT.is_started() && _inEventTvT && Config.TVT_SKILL_LIST.contains(skill.getId()))
+//		{
+//			sendPacket(SystemMessage.getSystemMessage(SystemMessageId.S1_CANNOT_BE_USED).addSkillName(skill));
+//			return false;
+//		}
 		
 		if ((CTF.is_started() || CTF.is_sitForced()) && _inEventCTF && Config.CTF_SKILL_LIST.contains(skill.getId()))
 		{
@@ -3371,6 +3366,11 @@ public class Player extends Playable
 	@Override
 	public void onAction(Player player)
 	{
+		if (!TvTEvent.onAction(player, getObjectId()))
+		{
+			player.sendPacket(ActionFailed.STATIC_PACKET);
+			return;
+		}
 		if (player != this && player.isInsideZone(ZoneId.TIME_FARM) && isInsideZone(ZoneId.TIME_FARM))
 		{
 		    player.sendPacket(ActionFailed.STATIC_PACKET);
@@ -3438,7 +3438,7 @@ public class Player extends Playable
 		else
 		{
 			
-			if ((TvT.is_sitForced() && player._inEventTvT) || (CTF.is_sitForced() && player._inEventCTF))
+			if ((CTF.is_sitForced() && player._inEventCTF))
 			{
 				player.sendPacket(ActionFailed.STATIC_PACKET);
 				return;
@@ -4209,225 +4209,363 @@ public class Player extends Playable
 	 * @param killer The Creature who attacks
 	 */
 	@Override
+//	public boolean doDie(Creature killer)
+//	{
+//		// Kill the Player
+//		if (!super.doDie(killer))
+//			return false;
+//		
+//		if (isMounted())
+//			stopFeed();
+//		
+//		synchronized (this)
+//		{
+//			if (isFakeDeath())
+//				stopFakeDeath(true);
+//		}
+//		
+//		if (killer != null)
+//		{
+//			Player pk = killer.getActingPlayer();
+//			
+//			if (pk != null && TvT.is_started() && _inEventTvT && pk._inEventTvT)
+//			{
+//				if (!(pk._teamNameTvT.equals(_teamNameTvT)))
+//				{
+//					_countTvTdies++;
+//					pk._countTvTkills++;
+//					pk.setTitle("Kills: " + pk._countTvTkills);
+//					
+//					//pk.setPvpKills(pk.getPvpKills() + 1);// PvP em TvT
+//					
+//					TvT.setTeamKillsCount(pk._teamNameTvT, TvT.teamKillsCount(pk._teamNameTvT) + 1);
+//					pk.broadcastTitleInfo();
+//				}
+//				else
+//				{
+//					pk.sendMessage("You are a teamkiller !!! Teamkills not counting.");
+//				}
+//				
+//				CreatureSay cs = new CreatureSay(getObjectId(), 2, "TvT Event", "You will be revived in " + Config.TVT_REVIVE_DELAY / 1000 + " seconds!"); // 8D
+//				sendPacket(cs);
+//				sendMessage("TvT Event" + ": You will be revived in " + Config.TVT_REVIVE_DELAY / 1000 + " seconds!");
+//				sendPacket(new ExShowScreenMessage("You will be revived in " + Config.TVT_REVIVE_DELAY / 1000 + " seconds!", 4000));
+//				
+//				if (isPhantom())
+//					setAttackP(true);
+//				
+//				ThreadPool.schedule(new Runnable()
+//				{
+//					
+//					@Override
+//					public void run()
+//					{
+//						if (isDead())
+//						{
+//							doRevive();
+//							teleToLocation(TvT._teamsX.get(TvT._teams.indexOf(_teamNameTvT)), TvT._teamsY.get(TvT._teams.indexOf(_teamNameTvT)), TvT._teamsZ.get(TvT._teams.indexOf(_teamNameTvT)), 200);
+//							
+//							if (isPhantom())
+//							{
+//								ThreadPool.schedule(new Runnable()
+//								{
+//									@Override
+//									public void run()
+//									{
+//										if (isSpawnProtected())
+//											setSpawnProtection(false);
+//										
+//										starAttack();
+//									}
+//								}, Rnd.get(3000, 4000));
+//							}
+//						}
+//					}
+//				}, Config.TVT_REVIVE_DELAY);
+//				
+//			}
+//			else if (_inEventCTF)
+//			{
+//				if (CTF.is_started())
+//				{
+//					CreatureSay cs = new CreatureSay(getObjectId(), 2, "CTF", "You will be revived in " + Config.CTF_REVIVE_DELAY / 1000 + " seconds!"); // 8D
+//					sendPacket(cs);
+//					sendMessage(CTF._eventName + ": You will be revived in " + Config.CTF_REVIVE_DELAY / 1000 + " seconds!");
+//					sendPacket(new ExShowScreenMessage("You will be revived in " + Config.CTF_REVIVE_DELAY / 1000 + " seconds!", 4000));
+//					
+//					if (_haveFlagCTF)
+//						removeCTFFlagOnDie();
+//					
+//					if (isPhantom())
+//						setAttackP(true);
+//					
+//					ThreadPool.schedule(new Runnable()
+//					{
+//						@Override
+//						public void run()
+//						{
+//							if (isDead())
+//							{
+//								if (CTF.is_started())
+//								{
+//									doRevive();
+//									final int offset = Config.CTF_SPAWN_OFFSET;
+//									teleToLocation(CTF._teamsX.get(CTF._teams.indexOf(_teamNameCTF)) + Rnd.get(-offset, offset), CTF._teamsY.get(CTF._teams.indexOf(_teamNameCTF)) + Rnd.get(-offset, offset), CTF._teamsZ.get(CTF._teams.indexOf(_teamNameCTF)), 0);
+//									
+//									if (isPhantom())
+//									{
+//										ThreadPool.schedule(new Runnable()
+//										{
+//											@Override
+//											public void run()
+//											{
+//												if (isSpawnProtected())
+//													setSpawnProtection(false);
+//												
+//												starAttack();
+//											}
+//										}, Rnd.get(3000, 4000));
+//									}
+//								}
+//								else if (CTF.is_teleport())
+//									doRevive();
+//							}
+//							
+//						}
+//					}, Config.CTF_REVIVE_DELAY);
+//				}
+//			}
+//			else if (isPhantomArchMage() || isPhantomMysticMuse() || isPhantomStormScream() || isPhantomArcher())
+//			{
+//				setAttackP(true);
+//				ThreadPool.schedule(new Runnable()
+//				{
+//					@Override
+//					public void run()
+//					{
+//						doRevive();
+//					//	starTeleport();
+//						
+//						ThreadPool.schedule(new Runnable()
+//						{
+//							@Override
+//							public void run()
+//							{
+//								if (isSpawnProtected())
+//									setSpawnProtection(false);
+//								
+//								starAttack();
+//							}
+//						}, Rnd.get(3000, 4000));
+//					}
+//				}, Rnd.get(5100, 10220));
+//			}
+//			
+//			else if (isFarmArchMage() || isFarmMysticMuse() || isFarmStormScream())
+//			{
+//				ThreadPool.schedule(new Runnable()
+//				{
+//					@Override
+//					public void run()
+//					{
+//						teleToLocation(TeleportType.TOWN);
+//						doRevive();
+//						ThreadPool.schedule(new Runnable()
+//						{
+//							@Override
+//							public void run()
+//							{
+//								if (isSpawnProtected())
+//									setSpawnProtection(false);
+//								starAttack2();
+//								
+//							}
+//						}, Rnd.get(3000, 4000));
+//					}
+//				}, Rnd.get(5100, 10220));
+//			}
+//			
+//			
+//			// Effect Red on Death
+//			// sendPacket(new ExRedSky(2));
+//			KTBEvent.onDie(this);
+//			DMEvent.onKill(killer, this);
+//			FOSEvent.onKill(killer, this);
+//			// Clear resurrect xp calculation
+//			setExpBeforeDeath(0);
+//			
+//			if (isCursedWeaponEquipped())
+//				CursedWeaponsManager.getInstance().drop(_cursedWeaponEquippedId, killer);
+//			else
+//			{
+//				if (pk == null || !pk.isCursedWeaponEquipped())
+//				{
+//					
+//					onDieDropItem(killer); // Check if any item should be dropped
+//					
+//					// if the area isn't an arena
+//					if (!isInArena())
+//					{
+//						// if both victim and attacker got clans & aren't academicians
+//						if (pk != null && pk.getClan() != null && getClan() != null && !isAcademyMember() && !pk.isAcademyMember())
+//						{
+//							// if clans got mutual war, then use the reputation calcul
+//							if (_clan.isAtWarWith(pk.getClanId()) && pk.getClan().isAtWarWith(_clan.getClanId()))
+//							{
+//								// when your reputation score is 0 or below, the other clan cannot acquire any reputation points
+//								if (getClan().getReputationScore() > 0)
+//									pk.getClan().addReputationScore(1);
+//								// when the opposing sides reputation score is 0 or below, your clans reputation score doesn't decrease
+//								if (pk.getClan().getReputationScore() > 0)
+//									_clan.takeReputationScore(1);
+//							}
+//						}
+//					}
+//					
+//					// Reduce player's xp and karma.
+//					if (Config.ALT_GAME_DELEVEL && !isPhantom() && (getSkillLevel(L2Skill.SKILL_LUCKY) < 0 || getStat().getLevel() > 9) && getStat().getLevel() < 80)
+//						deathPenalty(pk != null && getClan() != null && pk.getClan() != null && (getClan().isAtWarWith(pk.getClanId()) || pk.getClan().isAtWarWith(getClanId())), pk != null, killer instanceof SiegeGuard);
+//					else
+//					{
+//						onDieUpdateKarma(); // Update karma if delevel is not allowed
+//					}
+//				}
+//			}
+//		}
 	public boolean doDie(Creature killer)
 	{
-		// Kill the Player
 		if (!super.doDie(killer))
 			return false;
-		
+
 		if (isMounted())
 			stopFeed();
-		
+
 		synchronized (this)
 		{
 			if (isFakeDeath())
 				stopFakeDeath(true);
 		}
-		
+
 		if (killer != null)
 		{
 			Player pk = killer.getActingPlayer();
-			
-			if (pk != null && TvT.is_started() && _inEventTvT && pk._inEventTvT)
-			{
-				if (!(pk._teamNameTvT.equals(_teamNameTvT)))
-				{
-					_countTvTdies++;
-					pk._countTvTkills++;
-					pk.setTitle("Kills: " + pk._countTvTkills);
-					
-					//pk.setPvpKills(pk.getPvpKills() + 1);// PvP em TvT
-					
-					TvT.setTeamKillsCount(pk._teamNameTvT, TvT.teamKillsCount(pk._teamNameTvT) + 1);
-					pk.broadcastTitleInfo();
-				}
-				else
-				{
-					pk.sendMessage("You are a teamkiller !!! Teamkills not counting.");
-				}
-				
-				CreatureSay cs = new CreatureSay(getObjectId(), 2, "TvT Event", "You will be revived in " + Config.TVT_REVIVE_DELAY / 1000 + " seconds!"); // 8D
-				sendPacket(cs);
-				sendMessage("TvT Event" + ": You will be revived in " + Config.TVT_REVIVE_DELAY / 1000 + " seconds!");
-				sendPacket(new ExShowScreenMessage("You will be revived in " + Config.TVT_REVIVE_DELAY / 1000 + " seconds!", 4000));
-				
-				if (isPhantom())
-					setAttackP(true);
-				
-				ThreadPool.schedule(new Runnable()
-				{
-					
-					@Override
-					public void run()
-					{
-						if (isDead())
-						{
-							doRevive();
-							teleToLocation(TvT._teamsX.get(TvT._teams.indexOf(_teamNameTvT)), TvT._teamsY.get(TvT._teams.indexOf(_teamNameTvT)), TvT._teamsZ.get(TvT._teams.indexOf(_teamNameTvT)), 200);
-							
-							if (isPhantom())
-							{
-								ThreadPool.schedule(new Runnable()
-								{
-									@Override
-									public void run()
-									{
-										if (isSpawnProtected())
-											setSpawnProtection(false);
-										
-										starAttack();
-									}
-								}, Rnd.get(3000, 4000));
-							}
-						}
-					}
-				}, Config.TVT_REVIVE_DELAY);
-				
-			}
-			else if (_inEventCTF)
+
+			// ======= BLOCO DO CTF =======
+			if (_inEventCTF)
 			{
 				if (CTF.is_started())
 				{
-					CreatureSay cs = new CreatureSay(getObjectId(), 2, "CTF", "You will be revived in " + Config.CTF_REVIVE_DELAY / 1000 + " seconds!"); // 8D
+					CreatureSay cs = new CreatureSay(getObjectId(), 2, "CTF", "You will be revived in " + Config.CTF_REVIVE_DELAY / 1000 + " seconds!");
 					sendPacket(cs);
 					sendMessage(CTF._eventName + ": You will be revived in " + Config.CTF_REVIVE_DELAY / 1000 + " seconds!");
 					sendPacket(new ExShowScreenMessage("You will be revived in " + Config.CTF_REVIVE_DELAY / 1000 + " seconds!", 4000));
-					
+
 					if (_haveFlagCTF)
 						removeCTFFlagOnDie();
-					
+
 					if (isPhantom())
 						setAttackP(true);
-					
-					ThreadPool.schedule(new Runnable()
+
+					ThreadPool.schedule(() ->
 					{
-						@Override
-						public void run()
+						if (isDead())
 						{
-							if (isDead())
+							if (CTF.is_started())
 							{
-								if (CTF.is_started())
+								doRevive();
+								final int offset = Config.CTF_SPAWN_OFFSET;
+								teleToLocation(
+									CTF._teamsX.get(CTF._teams.indexOf(_teamNameCTF)) + Rnd.get(-offset, offset),
+									CTF._teamsY.get(CTF._teams.indexOf(_teamNameCTF)) + Rnd.get(-offset, offset),
+									CTF._teamsZ.get(CTF._teams.indexOf(_teamNameCTF)),
+									0);
+
+								if (isPhantom())
 								{
-									doRevive();
-									final int offset = Config.CTF_SPAWN_OFFSET;
-									teleToLocation(CTF._teamsX.get(CTF._teams.indexOf(_teamNameCTF)) + Rnd.get(-offset, offset), CTF._teamsY.get(CTF._teams.indexOf(_teamNameCTF)) + Rnd.get(-offset, offset), CTF._teamsZ.get(CTF._teams.indexOf(_teamNameCTF)), 0);
-									
-									if (isPhantom())
+									ThreadPool.schedule(() ->
 									{
-										ThreadPool.schedule(new Runnable()
-										{
-											@Override
-											public void run()
-											{
-												if (isSpawnProtected())
-													setSpawnProtection(false);
-												
-												starAttack();
-											}
-										}, Rnd.get(3000, 4000));
-									}
+										if (isSpawnProtected())
+											setSpawnProtection(false);
+
+										starAttack();
+									}, Rnd.get(3000, 4000));
 								}
-								else if (CTF.is_teleport())
-									doRevive();
 							}
-							
+							else if (CTF.is_teleport())
+								doRevive();
 						}
 					}, Config.CTF_REVIVE_DELAY);
 				}
 			}
+			// ======= PHANTOMS =======
 			else if (isPhantomArchMage() || isPhantomMysticMuse() || isPhantomStormScream() || isPhantomArcher())
 			{
 				setAttackP(true);
-				ThreadPool.schedule(new Runnable()
+				ThreadPool.schedule(() ->
 				{
-					@Override
-					public void run()
+					doRevive();
+
+					ThreadPool.schedule(() ->
 					{
-						doRevive();
-					//	starTeleport();
-						
-						ThreadPool.schedule(new Runnable()
-						{
-							@Override
-							public void run()
-							{
-								if (isSpawnProtected())
-									setSpawnProtection(false);
-								
-								starAttack();
-							}
-						}, Rnd.get(3000, 4000));
-					}
+						if (isSpawnProtected())
+							setSpawnProtection(false);
+
+						starAttack();
+					}, Rnd.get(3000, 4000));
 				}, Rnd.get(5100, 10220));
 			}
-			
+			// ======= FARM BOT =======
 			else if (isFarmArchMage() || isFarmMysticMuse() || isFarmStormScream())
 			{
-				ThreadPool.schedule(new Runnable()
+				ThreadPool.schedule(() ->
 				{
-					@Override
-					public void run()
+					teleToLocation(TeleportType.TOWN);
+					doRevive();
+
+					ThreadPool.schedule(() ->
 					{
-						teleToLocation(TeleportType.TOWN);
-						doRevive();
-						ThreadPool.schedule(new Runnable()
-						{
-							@Override
-							public void run()
-							{
-								if (isSpawnProtected())
-									setSpawnProtection(false);
-								starAttack2();
-								
-							}
-						}, Rnd.get(3000, 4000));
-					}
+						if (isSpawnProtected())
+							setSpawnProtection(false);
+						starAttack2();
+					}, Rnd.get(3000, 4000));
 				}, Rnd.get(5100, 10220));
 			}
-			
-			
-			// Effect Red on Death
-			// sendPacket(new ExRedSky(2));
+
 			KTBEvent.onDie(this);
 			DMEvent.onKill(killer, this);
 			FOSEvent.onKill(killer, this);
-			// Clear resurrect xp calculation
+			TvTEvent.onKill(killer, this);
 			setExpBeforeDeath(0);
-			
+
 			if (isCursedWeaponEquipped())
+			{
 				CursedWeaponsManager.getInstance().drop(_cursedWeaponEquippedId, killer);
+			}
 			else
 			{
 				if (pk == null || !pk.isCursedWeaponEquipped())
 				{
-					
-					onDieDropItem(killer); // Check if any item should be dropped
-					
-					// if the area isn't an arena
+					onDieDropItem(killer);
+
 					if (!isInArena())
 					{
-						// if both victim and attacker got clans & aren't academicians
 						if (pk != null && pk.getClan() != null && getClan() != null && !isAcademyMember() && !pk.isAcademyMember())
 						{
-							// if clans got mutual war, then use the reputation calcul
 							if (_clan.isAtWarWith(pk.getClanId()) && pk.getClan().isAtWarWith(_clan.getClanId()))
 							{
-								// when your reputation score is 0 or below, the other clan cannot acquire any reputation points
 								if (getClan().getReputationScore() > 0)
 									pk.getClan().addReputationScore(1);
-								// when the opposing sides reputation score is 0 or below, your clans reputation score doesn't decrease
 								if (pk.getClan().getReputationScore() > 0)
 									_clan.takeReputationScore(1);
 							}
 						}
 					}
-					
-					// Reduce player's xp and karma.
+
 					if (Config.ALT_GAME_DELEVEL && !isPhantom() && (getSkillLevel(L2Skill.SKILL_LUCKY) < 0 || getStat().getLevel() > 9) && getStat().getLevel() < 80)
 						deathPenalty(pk != null && getClan() != null && pk.getClan() != null && (getClan().isAtWarWith(pk.getClanId()) || pk.getClan().isAtWarWith(getClanId())), pk != null, killer instanceof SiegeGuard);
 					else
 					{
-						onDieUpdateKarma(); // Update karma if delevel is not allowed
+						onDieUpdateKarma();
 					}
 				}
 			}
@@ -4491,7 +4629,7 @@ public class Player extends Playable
 	
 	private void onDieDropItem(Creature killer)
 	{
-		if (killer == null || ((TvT.is_teleport() || TvT.is_started()) && _inEventTvT) || ((CTF.is_teleport() || CTF.is_started()) && _inEventCTF) || isInArenaEvent())
+		if (killer == null || ((CTF.is_teleport() || CTF.is_started()) && _inEventCTF) || isInArenaEvent())
 			return;
 		
 		Player pk = killer.getActingPlayer();
@@ -4638,7 +4776,7 @@ public class Player extends Playable
 		
 		
 		// Check if it's pvp (cases : regular, wars, victim is PKer)
-		if (checkIfPvP(target) || (targetPlayer.getClan() != null && getClan() != null && getClan().isAtWarWith(targetPlayer.getClanId()) && targetPlayer.getClan().isAtWarWith(getClanId()) && targetPlayer.getPledgeType() != Clan.SUBUNIT_ACADEMY && getPledgeType() != Clan.SUBUNIT_ACADEMY) || (targetPlayer.getKarma() > 0 && Config.KARMA_AWARD_PK_KILL) || TvT.is_started() && _inEventTvT || (CTF.is_started() && _inEventCTF) || DMEvent.isStarted() && DMEvent.isPlayerParticipant(getObjectId()) || FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(getObjectId()))
+		if (checkIfPvP(target) || (targetPlayer.getClan() != null && getClan() != null && getClan().isAtWarWith(targetPlayer.getClanId()) && targetPlayer.getClan().isAtWarWith(getClanId()) && targetPlayer.getPledgeType() != Clan.SUBUNIT_ACADEMY && getPledgeType() != Clan.SUBUNIT_ACADEMY) || (targetPlayer.getKarma() > 0 && Config.KARMA_AWARD_PK_KILL) || TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(getObjectId()) || (CTF.is_started() && _inEventCTF) || DMEvent.isStarted() && DMEvent.isPlayerParticipant(getObjectId()) || FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(getObjectId()))
 		{
 			if (target instanceof Player)
 			{
@@ -4649,16 +4787,16 @@ public class Player extends Playable
 					pvpColor();
 				}
 				
-				if (!isPhantom() && !(isInsideZone(ZoneId.RAID) || isInsideZone(ZoneId.RAID_NO_FLAG)) && !isInsideZone(ZoneId.BOSS))
-				{
-					if (Config.PVP_BOTS_PREVENTION && !targetPlayer._inEventTvT && !_inEventTvT && !targetPlayer._inEventCTF && !_inEventCTF && !isArenaProtection() && !targetPlayer.isArenaProtection())
-						BotsPvPPreventionManager.getInstance().updatecounter(this, targetPlayer);
-				}
+//				if (!isPhantom() && !(isInsideZone(ZoneId.RAID) || isInsideZone(ZoneId.RAID_NO_FLAG)) && !isInsideZone(ZoneId.BOSS))
+//				{
+//					if (Config.PVP_BOTS_PREVENTION && !targetPlayer._inEventTvT && !_inEventTvT && !targetPlayer._inEventCTF && !_inEventCTF && !isArenaProtection() && !targetPlayer.isArenaProtection())
+//						BotsPvPPreventionManager.getInstance().updatecounter(this, targetPlayer);
+//				}
 				
 				// Send UserInfo packet to attacker with its Karma and PK Counter
 				sendPacket(new UserInfo(this));
 				
-				if (Config.ANNOUNCE_PVP_KILL && !target.isGM() && !isGM())
+				if (Config.ANNOUNCE_PVP_KILL)
 				{
 					
 					SystemMessage message = new SystemMessage(SystemMessageId.S1_S2);
@@ -4670,15 +4808,30 @@ public class Player extends Playable
 					if (Config.PVP_REWARD_ENABLED)
 						addItem("Winning PvP", Config.PVP_REWARD_ID, Config.PVP_REWARD_AMOUNT, this, true);
 					
-					if (PvPEvent.getInstance().isActive() && isInsideZone(ZoneId.PVP_CUSTOM)) 
+//					if (PvPEvent.getInstance().isActive() && isInsideZone(ZoneId.PVP_CUSTOM)) 
+//					{
+//	
+//						if (!isPhantom())
+//						increasePvpKillsMission();
+//						
+//						if (Config.ALLOW_SPECIAL_PVP_REWARD)
+//							pvpAreaReward(); 
+//						PvPEvent.addEventPvp(this);
+//					} 
+					if (PvPEvent.getInstance().isActive() && isInsideZone(ZoneId.PVP_CUSTOM))
 					{
-	
 						if (!isPhantom())
-						increasePvpKillsMission();
-						
+							increasePvpKillsMission();
+						if (Config.PVP_ITEM_ENCHANT_EVENT)
+						{
+							PvPEnchantSystem.RewardEnchantChanceByPvp(this);
+						}
 						if (Config.ALLOW_SPECIAL_PVP_REWARD)
+						{
 							pvpAreaReward(); 
-						PvPEvent.addEventPvp(this);
+							PvPEvent.addEventPvp(this);
+						}
+						
 					} 
 				}
 				
@@ -4730,31 +4883,53 @@ public class Player extends Playable
 		    } 
 		  }
 	
-	private void pvpAreaReward() {
-		SystemMessage sm = null;
-		for (int[] reward : Config.PVP_SPECIAL_ITEMS_REWARD) {
+		private void pvpAreaReward() 
+		{
+			SystemMessage sm = null;
 			PcInventory inv = getInventory();
-			if (ItemTable.getInstance().createDummyItem(reward[0]).isStackable()) {
-				inv.addItem("Pvp Reward:", reward[0], reward[1], this, null);
-				if (reward[1] > 1) {
-					sm = SystemMessage.getSystemMessage(SystemMessageId.EARNED_S2_S1_S);
-					sm.addItemName(reward[0]);
-					sm.addItemNumber(reward[1]);
-				} else {
-					sm = SystemMessage.getSystemMessage(SystemMessageId.EARNED_ITEM_S1);
-					sm.addItemName(reward[0]);
+
+			for (int[] reward : Config.PVP_SPECIAL_ITEMS_REWARD) 
+			{
+				int itemId = reward[0];
+				int baseAmount = reward[1];
+				int amountToGive = baseAmount;
+
+				// Se o jogador for VIP, dá um bônus (exemplo: 50% a mais)
+				if (isVip()) 
+				{
+					amountToGive = baseAmount * Config.RATE_DROP_VIP; // use sua config VIP_DROP_RATE, ex: 1.5
+					if (amountToGive < baseAmount) // Garante que pelo menos a base seja dada
+						amountToGive = baseAmount;
+				}
+
+				if (ItemTable.getInstance().createDummyItem(itemId).isStackable()) 
+				{
+					inv.addItem("Pvp Reward:", itemId, amountToGive, this, null);
+					if (amountToGive > 1) 
+					{
+						sm = SystemMessage.getSystemMessage(SystemMessageId.EARNED_S2_S1_S);
+						sm.addItemName(itemId);
+						sm.addItemNumber(amountToGive);
+					}
+					else
+					{
+						sm = SystemMessage.getSystemMessage(SystemMessageId.EARNED_ITEM_S1);
+						sm.addItemName(itemId);
+					} 
+					sendPacket(sm);
+					continue;
 				} 
-				sendPacket(sm);
-				continue;
+
+				// Para itens não empilháveis, dá item por item
+				for (int i = 0; i < amountToGive; i++) 
+				{
+					inv.addItem("Pvp Reward:", itemId, 1, this, null);
+					sm = SystemMessage.getSystemMessage(SystemMessageId.EARNED_ITEM_S1);
+					sm.addItemName(itemId);
+					sendPacket(sm);
+				} 
 			} 
-			for (int i = 0; i < reward[1]; i++) {
-				inv.addItem("Pvp Reward:", reward[0], 1, this, null);
-				sm = SystemMessage.getSystemMessage(SystemMessageId.EARNED_ITEM_S1);
-				sm.addItemName(reward[0]);
-				sendPacket(sm);
-			} 
-		} 
-	}
+		}
 	
 	private boolean checkAntiFarm(Player targetPlayer)
 	{
@@ -4997,7 +5172,7 @@ public class Player extends Playable
 	
 	public void updatePvPStatus()
 	{
-		if ((TvT.is_started() && _inEventTvT) || (CTF.is_started() && _inEventCTF) || isInOlympiadMode())
+		if ((CTF.is_started() && _inEventCTF) || isInOlympiadMode())
 			return;
 		
 		if (isInsideZone(ZoneId.PARTYZONE) && getPvpFlag() > 0)
@@ -5026,7 +5201,12 @@ public class Player extends Playable
 		if (isInsideZone(ZoneId.PARTYZONE) && getPvpFlag() > 0)
 			return;
 		
-		if ((TvT.is_started() && _inEventTvT) || (CTF.is_started() && _inEventCTF) || isInOlympiadMode())
+		if(TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(getObjectId()))
+		{
+			return;
+		}
+		
+		if ((CTF.is_started() && _inEventCTF) || isInOlympiadMode())
 			return;
 		
 		if(FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(getObjectId()))
@@ -7472,6 +7652,9 @@ public class Player extends Playable
 		if (FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(getObjectId()))
 			return true;
 		
+		if (TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(getObjectId()))
+			return true;
+		
 		// Check if the attacker isn't the Player Pet
 		if (attacker == this || attacker == getPet())
 			return false;
@@ -7495,28 +7678,28 @@ public class Player extends Playable
 			// Get Player
 			final Player cha = attacker.getActingPlayer();
 			
-			if (TvT.is_started() && cha._inEventTvT)
-			{
-				Player player = null;
-				if (attacker instanceof Player)
-				{
-					player = (Player) attacker;
-				}
-				else if (attacker instanceof Summon)
-				{
-					player = ((Summon) attacker).getOwner();
-				}
-				if (player != null)
-				{
-					if ((_inEventTvT && player._inEventTvT && !_teamNameTvT.equals(player._teamNameTvT)))
-						return true;
-					
-					if ((_inEventTvT && player._inEventTvT && _teamNameTvT.equals(player._teamNameTvT)))
-						return false;
-					
-					return false;
-				}
-			}
+//			if (TvT.is_started() && cha._inEventTvT)
+//			{
+//				Player player = null;
+//				if (attacker instanceof Player)
+//				{
+//					player = (Player) attacker;
+//				}
+//				else if (attacker instanceof Summon)
+//				{
+//					player = ((Summon) attacker).getOwner();
+//				}
+//				if (player != null)
+//				{
+//					if ((_inEventTvT && player._inEventTvT && !_teamNameTvT.equals(player._teamNameTvT)))
+//						return true;
+//					
+//					if ((_inEventTvT && player._inEventTvT && _teamNameTvT.equals(player._teamNameTvT)))
+//						return false;
+//					
+//					return false;
+//				}
+//			}
 			if (cha.isInsideZone(ZoneId.PVP_CUSTOM))
 			{
 				Player player = null;
@@ -7671,6 +7854,10 @@ public class Player extends Playable
 			if (FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(getObjectId()))
 				return true;
 			
+			// Check if the attacker is in TvT and TvT is started
+			if (TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(getObjectId()))
+				return true;
+			
 			// Check if the attacker is not in the same clan.
 			if (getClan() != null && getClan().isMember(cha.getObjectId()))
 				return false;
@@ -7746,7 +7933,7 @@ public class Player extends Playable
 			sendPacket(ActionFailed.STATIC_PACKET);
 			return false;
 		}
-		if(isInsideZone(ZoneId.PVP_CUSTOM))
+		if(Config.BLOCK_PVPEVENTCLASS && isInsideZone(ZoneId.PVP_CUSTOM))
 		{
 			if (isInsideZone(ZoneId.PVP_CUSTOM) && getClassId() == ClassId.BISHOP || getClassId() == ClassId.CARDINAL || getClassId() == ClassId.SHILLIEN_ELDER || getClassId() == ClassId.SHILLIEN_SAINT || getClassId() == ClassId.EVAS_SAINT || getClassId() == ClassId.ELVEN_ELDER || getClassId() == ClassId.PROPHET || getClassId() == ClassId.HIEROPHANT)
 			{
@@ -7970,15 +8157,15 @@ public class Player extends Playable
 			sendPacket(ActionFailed.STATIC_PACKET);
 			return false;
 		}
-	//	if(Config.ZONEPVPEVENT_ALLOW_INTERFERENCE)
-	//	{
+		if(Config.ZONEPVPEVENT_ALLOW_INTERFERENCE)
+		{
 			if (target instanceof Player && !isInsideZone(ZoneId.PVP_CUSTOM) && ((Player) target).isInsideZone(ZoneId.PVP_CUSTOM) || target instanceof Player && isInsideZone(ZoneId.PVP_CUSTOM) && !((Player) target).isInsideZone(ZoneId.PVP_CUSTOM))
 			{
 				sendPacket(ActionFailed.STATIC_PACKET);
 				sendMessage("Impossible Used Skills or Attacks in Players PvP Event Zone");
 				return false;
 				
-		//	}	
+			}	
 		}
 //			if (target instanceof Player)
 //			{
@@ -8045,12 +8232,12 @@ public class Player extends Playable
 				return false;
 			}
 			
-			if (TvT.is_sitForced() && _inEventTvT && skill.isOffensive())
-			{
-				sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
-				sendPacket(ActionFailed.STATIC_PACKET);
-				return false;
-			}
+//			if (TvT.is_sitForced() && _inEventTvT && skill.isOffensive())
+//			{
+//				sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
+//				sendPacket(ActionFailed.STATIC_PACKET);
+//				return false;
+//			}
 			
 			if (CTF.is_sitForced() && _inEventCTF && skill.isOffensive())
 			{
@@ -8059,22 +8246,22 @@ public class Player extends Playable
 				return false;
 			}
 			
-			if (TvT.is_started())
-			{
-				if (_inEventTvT && _teamNameTvT.equals(cha._teamNameTvT) && skill.isOffensive())
-				{
-					sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
-					sendPacket(ActionFailed.STATIC_PACKET);
-					return false;
-				}
-				
-				if (!_inEventTvT && cha._inEventTvT)
-				{
-					sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
-					sendPacket(ActionFailed.STATIC_PACKET);
-					return false;
-				}
-			}
+//			if (TvT.is_started())
+//			{
+//				if (_inEventTvT && _teamNameTvT.equals(cha._teamNameTvT) && skill.isOffensive())
+//				{
+//					sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
+//					sendPacket(ActionFailed.STATIC_PACKET);
+//					return false;
+//				}
+//				
+//				if (!_inEventTvT && cha._inEventTvT)
+//				{
+//					sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
+//					sendPacket(ActionFailed.STATIC_PACKET);
+//					return false;
+//				}
+//			}
 			
 			if (CTF.is_started())
 			{
@@ -8193,7 +8380,7 @@ public class Player extends Playable
 			}
 			
 			// Check if a Forced ATTACK is in progress on non-attackable target
-			if (!target.isAutoAttackable(this) && !forceUse && !(TvT.is_started() && _inEventTvT) && !(CTF.is_started() && _inEventCTF))
+			if (!target.isAutoAttackable(this) && !(CTF.is_started() && _inEventCTF))
 			{
 				switch (sklTargetType)
 				{
@@ -8486,12 +8673,14 @@ public class Player extends Playable
 		{
 			return true;
 		}
-			if (FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(getObjectId()))
-					return true;
+		if (FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(getObjectId()))
+			return true;
+		if (TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(getObjectId()))
+			return true;
 		if (!(target instanceof Playable))
 			return true;
 		
-		if ((TvT.is_started() && _inEventTvT) || (CTF.is_started() && _inEventCTF) || isArenaAttack())
+		if ((CTF.is_started() && _inEventCTF) || isArenaAttack())
 			return true;
 		
 		if (skill.isDebuff() || skill.isOffensive())
@@ -9234,6 +9423,7 @@ public class Player extends Playable
 		KTBEvent.onTeleported(this);
 		DMEvent.onTeleported(this);
 		FOSEvent.onTeleported(this);
+		TvTEvent.onTeleported(this);
 	}
 	
 	public int getOlympiadSide()
@@ -10344,7 +10534,7 @@ public class Player extends Playable
 		if (isMounted())
 			startFeed(_mountNpcId);
 		
-		if ((TvT.is_started() && _inEventTvT && Config.TVT_REVIVE_RECOVERY) || (CTF.is_started() && _inEventCTF && Config.CTF_REVIVE_RECOVERY))
+		if ((CTF.is_started() && _inEventCTF && Config.CTF_REVIVE_RECOVERY))
 		{
 			getStatus().setCurrentHp(getMaxHp());
 			getStatus().setCurrentMp(getMaxMp());
@@ -10856,6 +11046,7 @@ public class Player extends Playable
 			DMEvent.onLogout(this);
 			KTBEvent.onLogout(this);
 			FOSEvent.onLogout(this);
+			TvTEvent.onLogout(this);
 			// Update warehouse and remove them from the world
 			clearWarehouse();
 			
@@ -11412,6 +11603,10 @@ public class Player extends Playable
 						if (!FOSEvent.isInactive() && FOSEvent.isPlayerParticipant(getObjectId()))
 						{
 							FOSEvent.removeParticipant(getObjectId());
+						}
+						if (!TvTEvent.isInactive() && TvTEvent.isPlayerParticipant(getObjectId()))
+						{
+							TvTEvent.removeParticipant(getObjectId());
 						}
 						// Open a Html message to inform the player
 						final NpcHtmlMessage html = new NpcHtmlMessage(0);
@@ -12081,6 +12276,11 @@ public class Player extends Playable
 			summonerChar.sendPacket(SystemMessageId.YOUR_TARGET_IS_IN_AN_AREA_WHICH_BLOCKS_SUMMONING);
 			return false;
 		}
+		if (!TvTEvent.onEscapeUse(summonerChar.getObjectId()))
+		{
+			summonerChar.sendPacket(SystemMessageId.YOUR_TARGET_IS_IN_AN_AREA_WHICH_BLOCKS_SUMMONING);
+			return false;
+		}
 		if (!FOSEvent.onEscapeUse(summonerChar.getObjectId()))
 		{
 			summonerChar.sendPacket(SystemMessageId.YOUR_TARGET_IS_IN_AN_AREA_WHICH_BLOCKS_SUMMONING);
@@ -12136,6 +12336,11 @@ public class Player extends Playable
 			targetChar.sendPacket(SystemMessageId.YOUR_TARGET_IS_IN_AN_AREA_WHICH_BLOCKS_SUMMONING);
 			return false;
 		}
+		if (!TvTEvent.onEscapeUse(targetChar.getObjectId()))
+		{
+			targetChar.sendPacket(SystemMessageId.YOUR_TARGET_IS_IN_AN_AREA_WHICH_BLOCKS_SUMMONING);
+			return false;
+		}
 		if (!FOSEvent.onEscapeUse(targetChar.getObjectId()))
 		{
 			targetChar.sendPacket(SystemMessageId.YOUR_TARGET_IS_IN_AN_AREA_WHICH_BLOCKS_SUMMONING);
@@ -12148,6 +12353,10 @@ public class Player extends Playable
 		}
 		return true;
 	}
+	public byte TVTTeamName()
+	{
+		return (TvTEvent.getParticipantTeamId(getObjectId()));
+	}
 	//----------------------
 	//FOS Event Engine
 	//----------------------
@@ -12157,9 +12366,14 @@ public class Player extends Playable
 		return _skills;
 	}
 	public boolean atFOSEvent = false;
+	public boolean atTVTEvent = false;
 	public boolean isInFOSEvent()
 	{
 		return (atFOSEvent || (FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(getObjectId())));
+	}
+	public boolean isInTVTEvent()
+	{
+		return (atTVTEvent || (TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(getObjectId())));
 	}
 	//FOS
 	private int _eventFOSPoints = 0;
@@ -13250,8 +13464,6 @@ public class Player extends Playable
 		_lastY = y;
 		_lastZ = z;
 	}
-	
-	public int _originalNameColorTvT = 0, _countTvTkills, _countTvTdies, _originalKarmaTvT;
 	
 	public int _originalNameColorPvP = 0, _countPvPkills, _countPvPdies, _originalKarmaPvP;
 	

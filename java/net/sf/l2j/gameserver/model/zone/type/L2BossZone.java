@@ -1,15 +1,5 @@
 package net.sf.l2j.gameserver.model.zone.type;
 
-import net.sf.l2j.gameserver.data.MapRegionTable.TeleportType;
-import net.sf.l2j.gameserver.model.actor.Attackable;
-import net.sf.l2j.gameserver.model.actor.Creature;
-import net.sf.l2j.gameserver.model.actor.Npc;
-import net.sf.l2j.gameserver.model.actor.Playable;
-import net.sf.l2j.gameserver.model.actor.Summon;
-import net.sf.l2j.gameserver.model.actor.instance.Player;
-import net.sf.l2j.gameserver.model.zone.L2ZoneType;
-import net.sf.l2j.gameserver.model.zone.ZoneId;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,9 +11,19 @@ import java.util.logging.Level;
 
 import net.sf.l2j.ConnectionPool;
 import net.sf.l2j.commons.concurrent.ThreadPool;
+import net.sf.l2j.gameserver.data.MapRegionTable.TeleportType;
+import net.sf.l2j.gameserver.model.actor.Attackable;
+import net.sf.l2j.gameserver.model.actor.Creature;
+import net.sf.l2j.gameserver.model.actor.Npc;
+import net.sf.l2j.gameserver.model.actor.Playable;
+import net.sf.l2j.gameserver.model.actor.Summon;
+import net.sf.l2j.gameserver.model.actor.instance.Player;
+import net.sf.l2j.gameserver.model.zone.L2ZoneType;
+import net.sf.l2j.gameserver.model.zone.ZoneId;
 
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 
@@ -121,7 +121,7 @@ public class L2BossZone extends L2ZoneType
 				player.setInsideZone(ZoneId.NO_SUMMON_FRIEND, true);
 				
 				// Skip other checks for GM.
-				if (player.isGM() || player.isZoneObserver() || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || DMEvent.isStarted() && DMEvent.isPlayerParticipant(player.getObjectId()) || FOSEvent.isPlayerParticipant(player.getObjectId()) && FOSEvent.isStarted())
+				if (player.isGM() || player.isZoneObserver() || TvTEvent.isPlayerParticipant(player.getObjectId()) && TvTEvent.isStarted() || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || DMEvent.isStarted() && DMEvent.isPlayerParticipant(player.getObjectId()) || FOSEvent.isPlayerParticipant(player.getObjectId()) && FOSEvent.isStarted())
 					return;
 				
 				if (player.isMounted())

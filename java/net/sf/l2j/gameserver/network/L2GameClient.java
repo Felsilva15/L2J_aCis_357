@@ -22,7 +22,6 @@ import net.sf.l2j.commons.mmocore.MMOConnection;
 import net.sf.l2j.commons.mmocore.ReceivablePacket;
 import net.sf.l2j.events.ArenaTask;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.LoginServerThread;
 import net.sf.l2j.gameserver.LoginServerThread.SessionKey;
 import net.sf.l2j.gameserver.data.PlayerNameTable;
@@ -39,6 +38,7 @@ import net.sf.l2j.gameserver.network.serverpackets.ServerClose;
 
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 import hwid.Hwid;
 
@@ -473,7 +473,7 @@ public final class L2GameClient extends MMOClient<MMOConnection<L2GameClient>> i
 	}
 	public static boolean offlinePlayer(Player player)
 	{
-		if (player.isInsideZone(ZoneId.TOURNAMENT) || player._inEventTvT || player._inEventCTF || FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(player.getObjectId()) || FOSEvent.isPlayerParticipant(player.getObjectId()) || DMEvent.isStarted() && DMEvent.isPlayerParticipant(player.getObjectId()) || DMEvent.isPlayerParticipant(player.getObjectId()) || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || KTBEvent.isPlayerParticipant(player.getObjectId())  || player.isGM() || player.isInOlympiadMode() || player.isFestivalParticipant() || player.isInJail() || player.getBoat() != null)
+		if (player.isInsideZone(ZoneId.TOURNAMENT) || TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(player.getObjectId()) || TvTEvent.isPlayerParticipant(player.getObjectId()) || player._inEventCTF || FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(player.getObjectId()) || FOSEvent.isPlayerParticipant(player.getObjectId()) || DMEvent.isStarted() && DMEvent.isPlayerParticipant(player.getObjectId()) || DMEvent.isPlayerParticipant(player.getObjectId()) || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || KTBEvent.isPlayerParticipant(player.getObjectId())  || player.isGM() || player.isInOlympiadMode() || player.isFestivalParticipant() || player.isInJail() || player.getBoat() != null)
 			return false;
 		
 		boolean EnableSetOffline = true;
@@ -494,7 +494,7 @@ public final class L2GameClient extends MMOClient<MMOConnection<L2GameClient>> i
 	 */
 	public static boolean offlineMode(Player player)
 	{
-		if (player.isInsideZone(ZoneId.TOURNAMENT) || player._inEventTvT || player._inEventCTF || FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(player.getObjectId()) || FOSEvent.isPlayerParticipant(player.getObjectId()) || DMEvent.isStarted() && DMEvent.isPlayerParticipant(player.getObjectId()) || DMEvent.isPlayerParticipant(player.getObjectId()) || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || KTBEvent.isPlayerParticipant(player.getObjectId())  || player.isGM() || player.isInOlympiadMode() || player.isFestivalParticipant() || player.isInJail() || player.getBoat() != null)
+		if (player.isInsideZone(ZoneId.TOURNAMENT) || TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(player.getObjectId()) || TvTEvent.isPlayerParticipant(player.getObjectId()) || player._inEventCTF || FOSEvent.isStarted() && FOSEvent.isPlayerParticipant(player.getObjectId()) || FOSEvent.isPlayerParticipant(player.getObjectId()) || DMEvent.isStarted() && DMEvent.isPlayerParticipant(player.getObjectId()) || DMEvent.isPlayerParticipant(player.getObjectId()) || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || KTBEvent.isPlayerParticipant(player.getObjectId())  || player.isGM() || player.isInOlympiadMode() || player.isFestivalParticipant() || player.isInJail() || player.getBoat() != null)
 			return false;
 
 		boolean canSetShop = false;
@@ -632,6 +632,10 @@ public final class L2GameClient extends MMOClient<MMOConnection<L2GameClient>> i
 					{
 						DMEvent.onLogout(getActiveChar());
 					}
+					if(TvTEvent.isPlayerParticipant(getActiveChar().getObjectId()) && TvTEvent.isStarted() || TvTEvent.isPlayerParticipant(getActiveChar().getObjectId())) 
+					{
+						TvTEvent.onLogout(getActiveChar());
+					}
 					//Caso tome disconnect
 					if (getActiveChar().hasAgathion())
 					{
@@ -639,8 +643,7 @@ public final class L2GameClient extends MMOClient<MMOConnection<L2GameClient>> i
 						getActiveChar().lostAgathionSkills();
 						
 					}
-					if (player._inEventTvT)
-						TvT.onDisconnect(player);
+					
 					
 					if (player._inEventCTF)
 						CTF.onDisconnect(player);
@@ -774,13 +777,16 @@ public final class L2GameClient extends MMOClient<MMOConnection<L2GameClient>> i
 					{
 						DMEvent.onLogout(getActiveChar());
 					}
+					if(TvTEvent.isPlayerParticipant(getActiveChar().getObjectId()) && TvTEvent.isStarted() || TvTEvent.isPlayerParticipant(getActiveChar().getObjectId())) 
+					{
+						TvTEvent.onLogout(getActiveChar());
+					}
 					if (getActiveChar().hasAgathion())
 					{
 						getActiveChar().unSummonAgathion();
 						getActiveChar().lostAgathionSkills();
 					}
-					if (player._inEventTvT)
-						TvT.onDisconnect(player);
+				
 					
 					if (player._inEventCTF)
 						CTF.onDisconnect(player);

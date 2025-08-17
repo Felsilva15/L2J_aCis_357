@@ -1,7 +1,9 @@
 package Dev.Event.SoloBossEvent;
 
+import net.sf.l2j.Config;
+import net.sf.l2j.commons.concurrent.ThreadPool;
+import net.sf.l2j.commons.random.Rnd;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.data.MapRegionTable;
 import net.sf.l2j.gameserver.data.NpcTable;
 import net.sf.l2j.gameserver.data.SpawnTable;
@@ -16,12 +18,8 @@ import net.sf.l2j.gameserver.network.serverpackets.ConfirmDlg;
 import net.sf.l2j.gameserver.network.serverpackets.MagicSkillUse;
 import net.sf.l2j.gameserver.util.Broadcast;
 
-import net.sf.l2j.commons.random.Rnd;
-
-import net.sf.l2j.Config;
-import net.sf.l2j.commons.concurrent.ThreadPool;
-
 import Dev.Event.BossEvent.KTBEvent;
+import Dev.Event.TvT.TvTEvent;
 
 public class SoloBoss
 {
@@ -94,7 +92,7 @@ public class SoloBoss
 				
 				if (Config.SCREN_MSG_BOSS_SOLO)
 				{
-					if (player.isOff() || player.isOffShop() || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || CTF.is_started() && player._inEventCTF || player._inEventCTF || TvT.is_started() && player._inEventTvT || player._inEventTvT  || player.isAio() || player.isInsideZone(ZoneId.PVP_CUSTOM) || player.isDead()  /*KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted()*/ || player.isAlikeDead() || player.isInArenaEvent() || player.isArenaProtection() || player.isOlympiadProtection() || player.isInStoreMode() || player.isRooted() || player.getKarma() > 0 || player.isInOlympiadMode() || player.isFestivalParticipant() || player.isArenaAttack() || player.isInsideZone(ZoneId.BOSS) || player.isInsideZone(ZoneId.ARENA_EVENT) || player.isInsideZone(ZoneId.PVP_CUSTOM) || player.isInsideZone(ZoneId.SIEGE) || player.isInsideZone(ZoneId.TOURNAMENT))
+					if (player.isOff() || player.isOffShop() || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || CTF.is_started() && player._inEventCTF || player._inEventCTF || TvTEvent.isPlayerParticipant(player.getObjectId()) && TvTEvent.isStarted()  || player.isAio() || player.isInsideZone(ZoneId.PVP_CUSTOM) || player.isDead()  /*KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted()*/ || player.isAlikeDead() || player.isInArenaEvent() || player.isArenaProtection() || player.isOlympiadProtection() || player.isInStoreMode() || player.isRooted() || player.getKarma() > 0 || player.isInOlympiadMode() || player.isFestivalParticipant() || player.isArenaAttack() || player.isInsideZone(ZoneId.BOSS) || player.isInsideZone(ZoneId.ARENA_EVENT) || player.isInsideZone(ZoneId.PVP_CUSTOM) || player.isInsideZone(ZoneId.SIEGE) || player.isInsideZone(ZoneId.TOURNAMENT))
 					{
 						continue;
 					}

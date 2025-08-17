@@ -1,7 +1,7 @@
 package net.sf.l2j.gameserver.network.clientpackets;
 
+import net.sf.l2j.Config;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.model.World;
 import net.sf.l2j.gameserver.model.WorldObject;
 import net.sf.l2j.gameserver.model.actor.Summon;
@@ -16,8 +16,6 @@ import net.sf.l2j.gameserver.model.actor.instance.RaidBoss;
 import net.sf.l2j.gameserver.model.zone.ZoneId;
 import net.sf.l2j.gameserver.network.SystemMessageId;
 import net.sf.l2j.gameserver.network.serverpackets.ActionFailed;
-
-import net.sf.l2j.Config;
 
 public final class AttackRequest extends L2GameClientPacket
 {
@@ -56,7 +54,7 @@ public final class AttackRequest extends L2GameClientPacket
 			activeChar.sendPacket(ActionFailed.STATIC_PACKET);
 			return;
 		}
-		if (TvT.is_sitForced() && activeChar._inEventTvT || CTF.is_sitForced() && activeChar._inEventCTF)
+		if (CTF.is_sitForced() && activeChar._inEventCTF)
 		{
 			activeChar.sendPacket(ActionFailed.STATIC_PACKET);
 			return;
@@ -92,42 +90,42 @@ public final class AttackRequest extends L2GameClientPacket
 			return;
 		}
 		
-		// No attacks to same team in Event
-		if (TvT.is_started())
-		{
-			if (target instanceof Player)
-			{
-				if (activeChar._inEventTvT && !((Player) target)._inEventTvT)
-				{
-					activeChar.sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
-					activeChar.sendPacket(ActionFailed.STATIC_PACKET);
-					return;
-				}
-				
-				if (TvT.is_started() && !activeChar._inEventTvT && ((Player) target)._inEventTvT)
-				{
-					activeChar.sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
-					activeChar.sendPacket(ActionFailed.STATIC_PACKET);
-					return;
-				}
-				
-				if ((activeChar._inEventTvT && ((Player) target)._inEventTvT) && activeChar._teamNameTvT.equals(((Player) target)._teamNameTvT))
-				{
-					activeChar.sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
-					activeChar.sendPacket(ActionFailed.STATIC_PACKET);
-					return;
-				}
-			}
-			else if (target instanceof Summon)
-			{
-				if ((activeChar._inEventTvT && ((Summon) target).getOwner()._inEventTvT) && activeChar._teamNameTvT.equals(((Summon) target).getOwner()._teamNameTvT))
-				{
-					activeChar.sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
-					activeChar.sendPacket(ActionFailed.STATIC_PACKET);
-					return;
-				}
-			}
-		}
+//		// No attacks to same team in Event
+//		if (TvT.is_started())
+//		{
+//			if (target instanceof Player)
+//			{
+//				if (activeChar._inEventTvT && !((Player) target)._inEventTvT)
+//				{
+//					activeChar.sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
+//					activeChar.sendPacket(ActionFailed.STATIC_PACKET);
+//					return;
+//				}
+//				
+//				if (TvT.is_started() && !activeChar._inEventTvT && ((Player) target)._inEventTvT)
+//				{
+//					activeChar.sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
+//					activeChar.sendPacket(ActionFailed.STATIC_PACKET);
+//					return;
+//				}
+//				
+//				if ((activeChar._inEventTvT && ((Player) target)._inEventTvT) && activeChar._teamNameTvT.equals(((Player) target)._teamNameTvT))
+//				{
+//					activeChar.sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
+//					activeChar.sendPacket(ActionFailed.STATIC_PACKET);
+//					return;
+//				}
+//			}
+//			else if (target instanceof Summon)
+//			{
+//				if ((activeChar._inEventTvT && ((Summon) target).getOwner()._inEventTvT) && activeChar._teamNameTvT.equals(((Summon) target).getOwner()._teamNameTvT))
+//				{
+//					activeChar.sendPacket(SystemMessageId.TARGET_IS_INCORRECT);
+//					activeChar.sendPacket(ActionFailed.STATIC_PACKET);
+//					return;
+//				}
+//			}
+//		}
 		
 		// No attacks to same team in Event
 		if (CTF.is_started())
@@ -165,11 +163,14 @@ public final class AttackRequest extends L2GameClientPacket
 				}
 			}
 		}
-		if (target instanceof Player && !activeChar.isInsideZone(ZoneId.PVP_CUSTOM) && ((Player) target).isInsideZone(ZoneId.PVP_CUSTOM) || target instanceof Player && activeChar.isInsideZone(ZoneId.PVP_CUSTOM) && !((Player) target).isInsideZone(ZoneId.PVP_CUSTOM))
+		if(Config.ZONEPVPEVENT_ALLOW_INTERFERENCE)
 		{
-			activeChar.sendPacket(ActionFailed.STATIC_PACKET);
-			return;
-			
+			if (target instanceof Player && !activeChar.isInsideZone(ZoneId.PVP_CUSTOM) && ((Player) target).isInsideZone(ZoneId.PVP_CUSTOM) || target instanceof Player && activeChar.isInsideZone(ZoneId.PVP_CUSTOM) && !((Player) target).isInsideZone(ZoneId.PVP_CUSTOM))
+			{
+				activeChar.sendPacket(ActionFailed.STATIC_PACKET);
+				return;
+				
+			}
 		}
 		//FIX Players fora da arena nao atacar jogadores dentro da arena, virse e versa
 		if(!activeChar.isInsideZone(ZoneId.PEACE))

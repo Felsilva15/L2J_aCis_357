@@ -1,5 +1,17 @@
 package net.sf.l2j.gameserver.model.olympiad;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import net.sf.l2j.Config;
+import net.sf.l2j.ConnectionPool;
 import net.sf.l2j.gameserver.instancemanager.AioManager;
 import net.sf.l2j.gameserver.model.L2Party;
 import net.sf.l2j.gameserver.model.L2Party.MessageType;
@@ -14,21 +26,9 @@ import net.sf.l2j.gameserver.network.serverpackets.SystemMessage;
 import net.sf.l2j.gameserver.templates.StatsSet;
 import net.sf.l2j.util.CloseUtil;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import net.sf.l2j.Config;
-import net.sf.l2j.ConnectionPool;
-
 import Dev.Event.BossEvent.KTBEvent;
 import Dev.Event.DeathMatch.DMEvent;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSEvent;
 
 /**
@@ -395,7 +395,7 @@ public class OlympiadManager
 			return false;
 		
 		final int charId = player.getObjectId();
-		if (KTBEvent.isPlayerParticipant(charId) || DMEvent.isPlayerParticipant(charId) || FOSEvent.isPlayerParticipant(charId))
+		if (player.isAio() || TvTEvent.isPlayerParticipant(charId) || KTBEvent.isPlayerParticipant(charId) || DMEvent.isPlayerParticipant(charId) || FOSEvent.isPlayerParticipant(charId))
 		{
 			player.sendMessage("You can't join olympiad while participating on Event.");
 			return false;

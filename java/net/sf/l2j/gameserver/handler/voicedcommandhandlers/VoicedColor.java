@@ -21,15 +21,15 @@ import java.util.logging.Logger;
 
 import net.sf.l2j.Config;
 import net.sf.l2j.ConnectionPool;
-
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.data.ItemTable;
 import net.sf.l2j.gameserver.handler.IVoicedCommandHandler;
 import net.sf.l2j.gameserver.model.actor.instance.Player;
 import net.sf.l2j.gameserver.network.clientpackets.Say2;
 import net.sf.l2j.gameserver.network.serverpackets.CreatureSay;
 import net.sf.l2j.gameserver.network.serverpackets.NpcHtmlMessage;
+
+import Dev.Event.TvT.TvTEvent;
 
 
 public class VoicedColor implements IVoicedCommandHandler
@@ -45,7 +45,7 @@ public class VoicedColor implements IVoicedCommandHandler
 	@Override
 	public boolean useVoicedCommand(String command, Player activeChar, String target)
 	{
-		if ((activeChar._inEventTvT && (TvT.is_started() || TvT.is_teleport())) || (activeChar._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
+		if ((TvTEvent.isPlayerParticipant(activeChar.getObjectId()) && TvTEvent.isStarted()) || (activeChar._inEventCTF && (CTF.is_started() || CTF.is_teleport())))
 		{
 			activeChar.sendMessage("You can not do this in TvT Event!");
 			return false;

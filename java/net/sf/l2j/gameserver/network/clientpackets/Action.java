@@ -1,7 +1,7 @@
 package net.sf.l2j.gameserver.network.clientpackets;
 
+import net.sf.l2j.Config;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.model.World;
 import net.sf.l2j.gameserver.model.WorldObject;
 import net.sf.l2j.gameserver.model.actor.Npc;
@@ -50,10 +50,14 @@ public final class Action extends L2GameClientPacket
 		
 		final WorldObject obj = (activeChar.getTargetId() == _objectId) ? activeChar.getTarget() : World.getInstance().getObject(_objectId);
 		
-		if (obj instanceof Player && !activeChar.isInsideZone(ZoneId.PVP_CUSTOM) && ((Player) obj).isInsideZone(ZoneId.PVP_CUSTOM) || obj instanceof Player && activeChar.isInsideZone(ZoneId.PVP_CUSTOM) && !((Player) obj).isInsideZone(ZoneId.PVP_CUSTOM))
+		if(Config.ZONEPVPEVENT_ALLOW_INTERFERENCE)
 		{
-			activeChar.sendPacket(ActionFailed.STATIC_PACKET);
-			return;
+			if (obj instanceof Player && !activeChar.isInsideZone(ZoneId.PVP_CUSTOM) && ((Player) obj).isInsideZone(ZoneId.PVP_CUSTOM) || obj instanceof Player && activeChar.isInsideZone(ZoneId.PVP_CUSTOM) && !((Player) obj).isInsideZone(ZoneId.PVP_CUSTOM))
+			{
+				activeChar.sendPacket(ActionFailed.STATIC_PACKET);
+				return;
+				
+			}
 		}
 		// avoid using expensive operations if not needed
 		final WorldObject target;
@@ -62,23 +66,23 @@ public final class Action extends L2GameClientPacket
 		else
 			target = World.getInstance().getObject(_objectId);
 		
-		if (TvT.is_sitForced() && target instanceof Player && activeChar._inEventTvT && ((Player) target)._inEventTvT && !activeChar._teamNameTvT.equals(((Player) target)._teamNameTvT))
-		{
-			activeChar.sendPacket(ActionFailed.STATIC_PACKET);
-			return;
-		}
+//		if (TvT.is_sitForced() && target instanceof Player && activeChar._inEventTvT && ((Player) target)._inEventTvT && !activeChar._teamNameTvT.equals(((Player) target)._teamNameTvT))
+//		{
+//			activeChar.sendPacket(ActionFailed.STATIC_PACKET);
+//			return;
+//		}
 		
-		if (TvT.is_started() && target instanceof Player && !activeChar._inEventTvT && ((Player) target)._inEventTvT)
-		{
-			activeChar.sendPacket(ActionFailed.STATIC_PACKET);
-			return;
-		}
+//		if (TvT.is_started() && target instanceof Player && !activeChar._inEventTvT && ((Player) target)._inEventTvT)
+//		{
+//			activeChar.sendPacket(ActionFailed.STATIC_PACKET);
+//			return;
+//		}
 		
-		if (TvT.is_started() && target instanceof Player && activeChar._inEventTvT && !((Player) target)._inEventTvT)
-		{
-			activeChar.sendPacket(ActionFailed.STATIC_PACKET);
-			return;
-		}
+//		if (TvT.is_started() && target instanceof Player && activeChar._inEventTvT && !((Player) target)._inEventTvT)
+//		{
+//			activeChar.sendPacket(ActionFailed.STATIC_PACKET);
+//			return;
+//		}
 		
 		if (CTF.is_sitForced() && target instanceof Player && activeChar._inEventCTF && ((Player) target)._inEventCTF && !activeChar._teamNameCTF.equals(((Player) target)._teamNameCTF))
 		{

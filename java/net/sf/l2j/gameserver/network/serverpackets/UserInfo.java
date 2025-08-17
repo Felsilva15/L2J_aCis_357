@@ -1,7 +1,8 @@
 package net.sf.l2j.gameserver.network.serverpackets;
 
+import net.sf.l2j.Config;
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
+import net.sf.l2j.events.pvpevent.PvPEvent;
 import net.sf.l2j.gameserver.instancemanager.AioManager;
 import net.sf.l2j.gameserver.instancemanager.CursedWeaponsManager;
 import net.sf.l2j.gameserver.model.DressMe;
@@ -13,8 +14,7 @@ import net.sf.l2j.gameserver.model.location.Location;
 import net.sf.l2j.gameserver.model.zone.ZoneId;
 import net.sf.l2j.gameserver.skills.AbnormalEffect;
 
-import net.sf.l2j.Config;
-
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSConfig;
 import Dev.Event.TvTFortress.FOSEvent;
 
@@ -236,9 +236,34 @@ public class UserInfo extends L2GameServerPacket
 		{
 			writeS(Config.NEW_TITLE_AUTOFARM);
 		}
+		else if (_activeChar.isInsideZone(ZoneId.PVP_CUSTOM) && Config.ENABLE_NAME_TITLE_PVPEVENT && PvPEvent.getInstance().isActive())
+		{
+		    int rank = PvPEvent.getPlayerRank(_activeChar);
+		    int kills = PvPEvent.getEventPvp(_activeChar);
+
+		    if (rank > 0 && kills > 0)
+		    {
+		        String title = "Rank - " + rank + " | Kills - " + kills;
+		        writeS(title); // Exibe visualmente sem alterar o título real
+		    }
+		    else
+		    {
+		        writeS(_activeChar.getTitle()); // Exibe o título original
+		    }
+		}
 		else if (_activeChar.isInDMEvent())
 		{
 			writeS("Kills: " + _activeChar.getDMPointScore());
+		}
+		else if (_activeChar.isInTVTEvent())
+		{
+			byte playerTeamId = TvTEvent.getParticipantTeamId(_activeChar.getObjectId());
+
+			if (playerTeamId == 0)
+				writeS("Kills: " + _activeChar.getPointScore());
+
+			if (playerTeamId == 1)
+				writeS("Kills: " + _activeChar.getPointScore());
 		}
 		else if (_activeChar.isInFOSEvent())
 		{
@@ -254,7 +279,7 @@ public class UserInfo extends L2GameServerPacket
 			writeS((_activeChar.getPolyType() != PolyType.DEFAULT) ? "Morphed" : _activeChar.getTitle());
 		
 		
-		if (((TvT.is_started() || TvT.is_teleport()) && _activeChar._inEventTvT) || ((CTF.is_started() || CTF.is_teleport()) && _activeChar._inEventCTF)  || _activeChar.isInsideZone(ZoneId.PVP_CUSTOM) || _activeChar.isInFOSEvent())
+		if (((CTF.is_started() || CTF.is_teleport()) && _activeChar._inEventCTF)  || _activeChar.isInFOSEvent())
 		{
 			writeD(0);
 			writeD(0);
@@ -345,6 +370,16 @@ public class UserInfo extends L2GameServerPacket
 		else if (_activeChar.isInFOSEvent())
 		{
 			byte playerTeamId = FOSEvent.getParticipantTeamId(_activeChar.getObjectId());
+			
+			if (playerTeamId == 0)
+				writeD(0xFF3500); // Blue
+			
+			if (playerTeamId == 1)
+				writeD(0x0000F8); // Red
+		}
+		else if (_activeChar.isInTVTEvent())
+		{
+			byte playerTeamId = TvTEvent.getParticipantTeamId(_activeChar.getObjectId());
 			
 			if (playerTeamId == 0)
 				writeD(0xFF3500); // Blue

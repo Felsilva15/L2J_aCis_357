@@ -1,12 +1,16 @@
 package net.sf.l2j.gameserver.handler.voicedcommandhandlers;
 
+import java.sql.Date;
+import java.text.SimpleDateFormat;
+import java.util.StringTokenizer;
+
+import net.sf.l2j.Config;
+import net.sf.l2j.commons.concurrent.ThreadPool;
 import net.sf.l2j.events.ArenaTask;
 import net.sf.l2j.events.CTF;
 import net.sf.l2j.events.PartyZoneTask;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.events.manager.CTFEventManager;
 import net.sf.l2j.events.manager.PvPEventNext;
-import net.sf.l2j.events.manager.TvTEventManager;
 import net.sf.l2j.events.pvpevent.PvPEvent;
 import net.sf.l2j.gameserver.ArenaEvent;
 import net.sf.l2j.gameserver.MissionReset;
@@ -21,13 +25,6 @@ import net.sf.l2j.gameserver.model.olympiad.Olympiad;
 import net.sf.l2j.gameserver.model.zone.ZoneId;
 import net.sf.l2j.gameserver.network.serverpackets.NpcHtmlMessage;
 import net.sf.l2j.gameserver.network.serverpackets.OpenUrl;
-
-import java.sql.Date;
-import java.text.SimpleDateFormat;
-import java.util.StringTokenizer;
-
-import net.sf.l2j.Config;
-import net.sf.l2j.commons.concurrent.ThreadPool;
 import net.sf.l2j.gameserver.taskmanager.AutoGoldBar;
 
 import Dev.Event.BossEvent.KTBConfig;
@@ -38,8 +35,11 @@ import Dev.Event.ChampionInvade.InitialChampionInvade;
 import Dev.Event.DeathMatch.DMConfig;
 import Dev.Event.DeathMatch.DMEvent;
 import Dev.Event.DeathMatch.DMManager;
+import Dev.Event.LastMan.CheckNextEvent;
 import Dev.Event.SoloBossEvent.InitialSoloBossEvent;
 import Dev.Event.SoloBossEvent.SoloBoss;
+import Dev.Event.TvT.TvTConfig;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSConfig;
 import Dev.Event.TvTFortress.FOSEvent;
 import Dev.Event.TvTFortress.FOSManager;
@@ -372,11 +372,16 @@ public class VoicedMenu implements IVoicedCommandHandler
 			else	
 			html.replace("%pvp%", PvPEventNext.getInstance().getNextTime().toString() );
 		}
-		if(Config.TVT_EVENT_ENABLED){
-			if(TvT.is_inProgress())	
-			html.replace("%tvt%", "In Progress");
+		if(TvTConfig.TVT_EVENT_ENABLED)
+		{
+			if (TvTEvent.isStarted())
+			{
+				html.replace("%tvt%", "In Progress");
+			}
 			else
-		    html.replace("%tvt%", TvTEventManager.getInstance().getNextTime().toString() );
+			{
+				html.replace("%tvt%", CheckNextEvent.getInstance().getNextTvTTime());
+			}
 		}
 		if(DMConfig.DM_EVENT_ENABLED)
 		{
@@ -469,11 +474,16 @@ public class VoicedMenu implements IVoicedCommandHandler
 			else	
 			html.replace("%pvp%", PvPEventNext.getInstance().getNextTime().toString() );
 		}
-		if(Config.TVT_EVENT_ENABLED){
-			if(TvT.is_inProgress())	
-			html.replace("%tvt%", "In Progress");
+		if(TvTConfig.TVT_EVENT_ENABLED)
+		{
+			if (TvTEvent.isStarted())
+			{
+				html.replace("%tvt%", "In Progress");
+			}
 			else
-		    html.replace("%tvt%", TvTEventManager.getInstance().getNextTime().toString() );
+			{
+				html.replace("%tvt%", CheckNextEvent.getInstance().getNextTvTTime());
+			}
 		}
 		if(DMConfig.DM_EVENT_ENABLED)
 		{

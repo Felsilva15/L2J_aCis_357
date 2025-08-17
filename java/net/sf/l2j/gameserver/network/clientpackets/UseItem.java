@@ -1,7 +1,6 @@
 package net.sf.l2j.gameserver.network.clientpackets;
 
 import net.sf.l2j.events.CTF;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.gameserver.data.SkillTable;
 import net.sf.l2j.gameserver.handler.IItemHandler;
 import net.sf.l2j.gameserver.handler.ItemHandler;
@@ -237,10 +236,10 @@ public final class UseItem extends L2GameClientPacket
 			activeChar.sendMessage("You can not use this item here within the Time Zone.");
 			return;
 		}
-		if ((item.getItemId() == 8663 || item.getItemId() == 4422 || item.getItemId() == 4423 || item.getItemId() == 4424) && ((activeChar._inEventTvT && (TvT.is_teleport() || TvT.is_started())) || (activeChar._inEventCTF && (CTF.is_teleport() || CTF.is_started())) || activeChar.isArenaProtection()))
+		if ((item.getItemId() == 8663 || item.getItemId() == 4422 || item.getItemId() == 4423 || item.getItemId() == 4424) && ((activeChar._inEventCTF && (CTF.is_teleport() || CTF.is_started())) || activeChar.isArenaProtection()))
 			return;
 		
-		if ((item.getItemId() == 1538 || item.getItemId() == 3958 || item.getItemId() == 5858 || item.getItemId() == 5859 || item.getItemId() == 9156) && ((activeChar._inEventTvT && TvT.is_started()) || (activeChar._inEventCTF && CTF.is_started()) || activeChar.isArenaProtection() || activeChar.isArenaProtection() || activeChar.isInsideZone(ZoneId.TOURNAMENT)))
+		if ((item.getItemId() == 1538 || item.getItemId() == 3958 || item.getItemId() == 5858 || item.getItemId() == 5859 || item.getItemId() == 9156) && ((activeChar._inEventCTF && CTF.is_started()) || activeChar.isArenaProtection() || activeChar.isArenaProtection() || activeChar.isInsideZone(ZoneId.TOURNAMENT)))
 		{
 			activeChar.sendMessage("You can not use this item in Combat/Event mode..");
 			return;

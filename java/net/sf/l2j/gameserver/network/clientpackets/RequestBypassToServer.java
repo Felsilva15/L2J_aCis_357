@@ -3,10 +3,8 @@ package net.sf.l2j.gameserver.network.clientpackets;
 import net.sf.l2j.events.ArenaTask;
 import net.sf.l2j.events.CTF;
 import net.sf.l2j.events.PartyZoneTask;
-import net.sf.l2j.events.TvT;
 import net.sf.l2j.events.manager.CTFEventManager;
 import net.sf.l2j.events.manager.PvPEventNext;
-import net.sf.l2j.events.manager.TvTEventManager;
 import net.sf.l2j.events.pvpevent.PvPEvent;
 import net.sf.l2j.gameserver.ArenaEvent;
 import net.sf.l2j.gameserver.BalancerEdit;
@@ -91,8 +89,11 @@ import Dev.Event.ChampionInvade.InitialChampionInvade;
 import Dev.Event.DeathMatch.DMConfig;
 import Dev.Event.DeathMatch.DMEvent;
 import Dev.Event.DeathMatch.DMManager;
+import Dev.Event.LastMan.CheckNextEvent;
 import Dev.Event.SoloBossEvent.InitialSoloBossEvent;
 import Dev.Event.SoloBossEvent.SoloBoss;
+import Dev.Event.TvT.TvTConfig;
+import Dev.Event.TvT.TvTEvent;
 import Dev.Event.TvTFortress.FOSConfig;
 import Dev.Event.TvTFortress.FOSEvent;
 import Dev.Event.TvTFortress.FOSManager;
@@ -241,39 +242,45 @@ public final class RequestBypassToServer extends L2GameClientPacket
 				try
 				{
 					final WorldObject object = World.getInstance().getObject(Integer.parseInt(id));
-					if (_command.substring(endOfId + 1).startsWith("tvt_player_join "))
-					{
-						final String teamName = _command.substring(endOfId + 1).substring(16);
-						
-						if (TvT.is_joining())
-							TvT.addPlayer(activeChar, teamName);
-						else
-							activeChar.sendMessage("The event is already started. You can not join now!");
-					}
-					else if (_command.substring(endOfId + 1).startsWith("tvt_player_leave"))
-					{
-						if (TvT.is_joining())
-							TvT.removePlayer(activeChar);
-						else
-							activeChar.sendMessage("The event is already started. You can not leave now!");
-					}
-					else if (_command.substring(endOfId + 1).startsWith("tvt_watch"))
-					{
-						if (activeChar._inEventTvT)
-							return;
-						else if (TvT.is_teleport() || TvT.is_started())
-						{
-							activeChar.setEventObserver(true);
-							activeChar.enterTvTObserverMode(Config.TVT_OBSERVER_X, Config.TVT_OBSERVER_Y, Config.TVT_OBSERVER_Z);
-						}
-						else
-							activeChar.sendMessage("The event is Is offline.");
-					}
-					else if (_command.substring(endOfId + 1).startsWith("ctf_watch"))
+					
+//					if (object != null && object instanceof Npc && endOfId > 0 && ((Npc) object).canInteract(activeChar))
+//						((Npc) object).onBypassFeedback(activeChar, _command.substring(endOfId + 1));
+					
+				
+					
+//					if (_command.substring(endOfId + 1).startsWith("tvt_player_join "))
+//					{
+//						final String teamName = _command.substring(endOfId + 1).substring(16);
+//						
+//						if (TvT.is_joining())
+//							TvT.addPlayer(activeChar, teamName);
+//						else
+//							activeChar.sendMessage("The event is already started. You can not join now!");
+//					}
+//					else if (_command.substring(endOfId + 1).startsWith("tvt_player_leave"))
+//					{
+//						if (TvT.is_joining())
+//							TvT.removePlayer(activeChar);
+//						else
+//							activeChar.sendMessage("The event is already started. You can not leave now!");
+//					}
+//					else if (_command.substring(endOfId + 1).startsWith("tvt_watch"))
+//					{
+//						if (activeChar._inEventTvT)
+//							return;
+//						else if (TvT.is_teleport() || TvT.is_started())
+//						{
+//							activeChar.setEventObserver(true);
+//							activeChar.enterTvTObserverMode(Config.TVT_OBSERVER_X, Config.TVT_OBSERVER_Y, Config.TVT_OBSERVER_Z);
+//						}
+//						else
+//							activeChar.sendMessage("The event is Is offline.");
+//					}
+					if (_command.substring(endOfId + 1).startsWith("ctf_watch"))
 					{
 						if (activeChar._inEventCTF)
 							return;
-						else if (CTF.is_teleport() || CTF.is_started())
+						else if (CTF.is_teleport() || CTF.is_started() || TvTEvent.isPlayerParticipant(activeChar.getObjectId()))
 						{
 							activeChar.setEventObserver(true);
 							activeChar.enterTvTObserverMode(Config.CTF_OBSERVER_X, Config.CTF_OBSERVER_Y, Config.CTF_OBSERVER_Z);
@@ -925,17 +932,37 @@ public final class RequestBypassToServer extends L2GameClientPacket
 					activeChar.sendPacket(SystemMessageId.WHILE_YOU_ARE_ON_THE_WAITING_LIST_YOU_ARE_NOT_ALLOWED_TO_WATCH_THE_GAME);
 					return;
 				}
-				
+				if (
+					FOSEvent.isPlayerParticipant(activeChar.getObjectId()) ||
+					TvTEvent.isPlayerParticipant(activeChar.getObjectId()) ||
+					activeChar._inEventCTF ||
+					DMEvent.isPlayerParticipant(activeChar.getObjectId()) ||
+					KTBEvent.isPlayerParticipant(activeChar.getObjectId()) ||
+					activeChar.isArenaAttack()
+				)
+				{
+					activeChar.sendMessage("Observation impossible: You are registered in another event.");
+					return;
+				}
+
 				final int arenaId = Integer.parseInt(_command.substring(12).trim());
 				activeChar.enterOlympiadObserverMode(arenaId);
 			}
 			else if (_command.startsWith("tournament_observe"))
 			{
-				if (activeChar._inEventTvT || activeChar._inEventCTF)
+				if (
+					FOSEvent.isPlayerParticipant(activeChar.getObjectId()) ||
+					TvTEvent.isPlayerParticipant(activeChar.getObjectId()) ||
+					activeChar._inEventCTF ||
+					DMEvent.isPlayerParticipant(activeChar.getObjectId()) ||
+					KTBEvent.isPlayerParticipant(activeChar.getObjectId()) ||
+					activeChar.isArenaAttack()
+				)
 				{
-					activeChar.sendMessage("You already participated in the event tvt/ctf/pvp event!");
+					activeChar.sendMessage("Observation impossible: You are registered in another event.");
 					return;
 				}
+
 				
 				StringTokenizer st = new StringTokenizer(_command);
 				st.nextToken();
@@ -1110,7 +1137,7 @@ public final class RequestBypassToServer extends L2GameClientPacket
 						player.teleToLocation(list, 20);
 					//	player.teleToLocation(list.getX(), list.getY(), list.getZ(), 20);
 						// you cannot teleport to village that is in siege
-						if (TvT.is_started() && player._inEventTvT || CTF.is_started() && player._inEventCTF ||  player.isInOlympiadMode() || player.getPvpFlag() > 0 || player.isMoving() || player.isDead() || AttackStanceTaskManager.getInstance().isInAttackStance(player) || player.isCursedWeaponEquipped() || player.isInArenaEvent() || OlympiadManager.getInstance().isRegistered(player) || player.getKarma() > 0 || player.isInObserverMode() || DMEvent.isPlayerParticipant(player.getObjectId()) && DMEvent.isStarted() || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || player.isArenaAttack() || player.isArenaProtection() || player.isInsideZone(ZoneId.ARENA_EVENT) || player.isInsideZone(ZoneId.SIEGE) || player.isInsideZone(ZoneId.PVP_CUSTOM)  || player.isInJail())
+						if ( TvTEvent.isPlayerParticipant(player.getObjectId()) && TvTEvent.isStarted() || CTF.is_started() && player._inEventCTF ||  player.isInOlympiadMode() || player.getPvpFlag() > 0 || player.isMoving() || player.isDead() || AttackStanceTaskManager.getInstance().isInAttackStance(player) || player.isCursedWeaponEquipped() || player.isInArenaEvent() || OlympiadManager.getInstance().isRegistered(player) || player.getKarma() > 0 || player.isInObserverMode() || DMEvent.isPlayerParticipant(player.getObjectId()) && DMEvent.isStarted() || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || player.isArenaAttack() || player.isArenaProtection() || player.isInsideZone(ZoneId.ARENA_EVENT) || player.isInsideZone(ZoneId.SIEGE) || player.isInsideZone(ZoneId.PVP_CUSTOM)  || player.isInJail())
 						{
 							player.sendMessage("You can not Action NOW.");
 							return;
@@ -1120,7 +1147,7 @@ public final class RequestBypassToServer extends L2GameClientPacket
 			}
 			else // Desativado Delay quando esta false
 			{
-				if (TvT.is_started() && player._inEventTvT || CTF.is_started() && player._inEventCTF ||  player.isInOlympiadMode() || player.getPvpFlag() > 0 || player.isMoving() || player.isDead() || AttackStanceTaskManager.getInstance().isInAttackStance(player) || player.isCursedWeaponEquipped() || player.isInArenaEvent() || OlympiadManager.getInstance().isRegistered(player) || player.getKarma() > 0 || player.isInObserverMode() || DMEvent.isPlayerParticipant(player.getObjectId()) && DMEvent.isStarted() || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || player.isArenaAttack() || player.isArenaProtection() || player.isInsideZone(ZoneId.ARENA_EVENT) || player.isInsideZone(ZoneId.SIEGE) || player.isInsideZone(ZoneId.PVP_CUSTOM)  || player.isInJail())
+				if ( TvTEvent.isPlayerParticipant(player.getObjectId()) && TvTEvent.isStarted() || CTF.is_started() && player._inEventCTF ||  player.isInOlympiadMode() || player.getPvpFlag() > 0 || player.isMoving() || player.isDead() || AttackStanceTaskManager.getInstance().isInAttackStance(player) || player.isCursedWeaponEquipped() || player.isInArenaEvent() || OlympiadManager.getInstance().isRegistered(player) || player.getKarma() > 0 || player.isInObserverMode() || DMEvent.isPlayerParticipant(player.getObjectId()) && DMEvent.isStarted() || KTBEvent.isPlayerParticipant(player.getObjectId()) && KTBEvent.isStarted() || player.isArenaAttack() || player.isArenaProtection() || player.isInsideZone(ZoneId.ARENA_EVENT) || player.isInsideZone(ZoneId.SIEGE) || player.isInsideZone(ZoneId.PVP_CUSTOM)  || player.isInJail())
 				{
 					player.sendMessage("You can not Action NOW.");
 					return;
@@ -1558,11 +1585,16 @@ public final class RequestBypassToServer extends L2GameClientPacket
 			else	
 				html.replace("%champion%", InitialChampionInvade.getInstance().getRestartNextTime().toString() );
 		}
-		if(Config.TVT_EVENT_ENABLED){
-			if(TvT.is_inProgress())	
-			html.replace("%tvt%", "In Progress");
+		if(TvTConfig.TVT_EVENT_ENABLED)
+		{
+			if (TvTEvent.isStarted())
+			{
+				html.replace("%tvt%", "In Progress");
+			}
 			else
-		    html.replace("%tvt%", TvTEventManager.getInstance().getNextTime().toString() );
+			{
+				html.replace("%tvt%", CheckNextEvent.getInstance().getNextTvTTime());
+			}
 		}
 		if(DMConfig.DM_EVENT_ENABLED)
 		{

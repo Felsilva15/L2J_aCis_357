@@ -33,6 +33,8 @@ import net.sf.l2j.gameserver.network.serverpackets.SystemMessage;
 import net.sf.l2j.gameserver.network.serverpackets.UserInfo;
 import net.sf.l2j.gameserver.scripting.QuestState;
 
+import Dev.Event.TvT.TvTEvent;
+
 import java.util.Iterator;
 import java.util.Set;
 
@@ -85,7 +87,7 @@ public class VillageMaster extends Folk
 				player.sendMessage("Remove your participation from the Tournament Event!");
 			return;
 		}
-		else if (player._inEventTvT || player._inEventCTF)
+		else if (TvTEvent.isPlayerParticipant(player.getObjectId()) || player._inEventCTF)
 		{
 			player.sendMessage("You already participated in the event!");
 			return;
