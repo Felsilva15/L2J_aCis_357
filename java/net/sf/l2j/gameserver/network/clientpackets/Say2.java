@@ -5,13 +5,13 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import net.sf.l2j.Config;
-
 import net.sf.l2j.gameserver.handler.ChatHandler;
 import net.sf.l2j.gameserver.handler.IChatHandler;
 import net.sf.l2j.gameserver.instancemanager.ChatBanManager;
 import net.sf.l2j.gameserver.model.World;
 import net.sf.l2j.gameserver.model.actor.instance.Player;
 import net.sf.l2j.gameserver.model.actor.instance.Player.PunishLevel;
+import net.sf.l2j.gameserver.network.SystemMessageId;
 import net.sf.l2j.gameserver.network.serverpackets.ActionFailed;
 import net.sf.l2j.gameserver.network.serverpackets.CreatureSay;
 
@@ -142,6 +142,12 @@ public final class Say2 extends L2GameClientPacket
 		
 		if (_text.length() > 100)
 			return;
+		
+		if (_text.contains("\\n"))
+		{
+			activeChar.sendPacket(SystemMessageId.CHATTING_PROHIBITED);
+			return;
+		}
 		
 		if (Config.L2WALKER_PROTECTION && _type == TELL && checkBot(_text))
 			return;

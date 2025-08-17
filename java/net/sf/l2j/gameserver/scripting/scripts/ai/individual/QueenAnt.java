@@ -3,10 +3,8 @@ package net.sf.l2j.gameserver.scripting.scripts.ai.individual;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sf.l2j.commons.random.Rnd;
-
 import net.sf.l2j.Config;
-
+import net.sf.l2j.commons.random.Rnd;
 import net.sf.l2j.gameserver.data.SkillTable.FrequentSkill;
 import net.sf.l2j.gameserver.instancemanager.GrandBossManager;
 import net.sf.l2j.gameserver.instancemanager.ZoneManager;
@@ -26,6 +24,8 @@ import net.sf.l2j.gameserver.network.serverpackets.SocialAction;
 import net.sf.l2j.gameserver.scripting.EventType;
 import net.sf.l2j.gameserver.scripting.scripts.ai.L2AttackableAIScript;
 import net.sf.l2j.gameserver.templates.StatsSet;
+
+import Dev.BossTimeRespawn.TimeEpicBossManager;
 
 public class QueenAnt extends L2AttackableAIScript
 {
@@ -280,6 +280,61 @@ public class QueenAnt extends L2AttackableAIScript
 	}
 	
 	@Override
+//	public String onKill(Npc npc, Player killer, boolean isPet)
+//	{
+//		// Acts only once.
+//		if (GrandBossManager.getInstance().getBossStatus(QUEEN) == ALIVE)
+//		{
+//			int npcId = npc.getNpcId();
+//			if (npcId == QUEEN)
+//			{
+//				npc.broadcastPacket(new PlaySound(1, "BS02_D", npc));
+//				GrandBossManager.getInstance().setBossStatus(QUEEN, DEAD);
+//				
+//				long respawnTime;
+//				if(Config.AQ_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.AQ_CUSTOM_SPAWN_TIMES) != null)
+//		        {
+//					respawnTime = Config.FindNext(Config.AQ_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+//				}
+//		        else
+//		        {
+//					respawnTime = (long) Config.SPAWN_INTERVAL_AQ + Rnd.get(-Config.RANDOM_SPAWN_TIME_AQ, Config.RANDOM_SPAWN_TIME_AQ);
+//					respawnTime *= 3600000;
+//		        }
+//				
+//				startQuestTimer("queen_unlock", respawnTime, null, null, false);
+//				cancelQuestTimer("action", npc, null);
+//				cancelQuestTimer("heal", null, null);
+//				
+//				// also save the respawn time so that the info is maintained past reboots
+//				StatsSet info = GrandBossManager.getInstance().getStatsSet(QUEEN);
+//				info.set("respawn_time", System.currentTimeMillis() + respawnTime);
+//				GrandBossManager.getInstance().setStatsSet(QUEEN, info);
+//				
+//				_nurses.clear();
+//				_larva.deleteMe();
+//				_larva = null;
+//				_queen = null;
+//			}
+//			else
+//			{
+//				if (npcId == ROYAL)
+//				{
+//					Monster mob = (Monster) npc;
+//					if (mob.getLeader() != null)
+//						mob.getLeader().getMinionList().onMinionDie(mob, (280 + Rnd.get(40)) * 1000);
+//				}
+//				else if (npcId == NURSE)
+//				{
+//					Monster mob = (Monster) npc;
+//					_nurses.remove(mob);
+//					if (mob.getLeader() != null)
+//						mob.getLeader().getMinionList().onMinionDie(mob, 10000);
+//				}
+//			}
+//		}
+//		return super.onKill(npc, killer, isPet);
+//	}
 	public String onKill(Npc npc, Player killer, boolean isPet)
 	{
 		// Acts only once.
@@ -290,27 +345,24 @@ public class QueenAnt extends L2AttackableAIScript
 			{
 				npc.broadcastPacket(new PlaySound(1, "BS02_D", npc));
 				GrandBossManager.getInstance().setBossStatus(QUEEN, DEAD);
-				
-				long respawnTime;
-				if(Config.AQ_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.AQ_CUSTOM_SPAWN_TIMES) != null)
-		        {
-					respawnTime = Config.FindNext(Config.AQ_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+
+				// 🆕 Respawn fixo via XML
+				long respawnTime = TimeEpicBossManager.getInstance().getMillisUntilNextRespawn(npc.getNpcId());
+
+				if (respawnTime <= 0)
+				{
+					respawnTime = 36 * 60 * 60 * 1000L; // fallback de 36h
+					_log.warning("TimeEpicBoss: No respawn configured for Queen Ant (" + npc.getNpcId() + "), using fallback.");
 				}
-		        else
-		        {
-					respawnTime = (long) Config.SPAWN_INTERVAL_AQ + Rnd.get(-Config.RANDOM_SPAWN_TIME_AQ, Config.RANDOM_SPAWN_TIME_AQ);
-					respawnTime *= 3600000;
-		        }
-				
+
 				startQuestTimer("queen_unlock", respawnTime, null, null, false);
 				cancelQuestTimer("action", npc, null);
 				cancelQuestTimer("heal", null, null);
-				
-				// also save the respawn time so that the info is maintained past reboots
+
 				StatsSet info = GrandBossManager.getInstance().getStatsSet(QUEEN);
 				info.set("respawn_time", System.currentTimeMillis() + respawnTime);
 				GrandBossManager.getInstance().setStatsSet(QUEEN, info);
-				
+
 				_nurses.clear();
 				_larva.deleteMe();
 				_larva = null;

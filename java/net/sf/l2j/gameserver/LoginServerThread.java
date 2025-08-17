@@ -422,31 +422,95 @@ public class LoginServerThread extends Thread
 		}
 	}
 	
+//	public boolean addGameServerLogin(String account, L2GameClient client)
+//	{
+//		final L2GameClient savedClient = _accountsInGameServer.get(account);
+//		
+//		if (savedClient != null)
+//		{
+//			if (savedClient.isDetached())
+//			{
+//				if (Config.DEBUG)
+//					_log.info("Old Client was disconnected: Offline or OfflineMode --> Login Again");
+//				
+//				_accountsInGameServer.put(account, client);
+//				return true;
+//			}
+//			if (Config.DEBUG)
+//				_log.info("Old Client was online --> Close Old Client Connection");
+//			
+//			savedClient.closeNow();
+//			_accountsInGameServer.remove(account);
+//			return false;
+//		}
+//		
+//		if (Config.DEBUG)
+//			_log.info("Client was not online --> New Client Connection");
+//		
+//		_accountsInGameServer.put(account, client);
+//		return true;
+//	}
 	public boolean addGameServerLogin(String account, L2GameClient client)
 	{
 		final L2GameClient savedClient = _accountsInGameServer.get(account);
-		
+
 		if (savedClient != null)
 		{
+			final Player activeChar = savedClient.getActiveChar();
+
 			if (savedClient.isDetached())
 			{
+				// Verificasao extra: se o personagem ainda esta no mundo, remova!
+				if (activeChar != null)
+				{
+					if (World.getInstance().getPlayer(activeChar.getObjectId()) != null)
+					{
+						if (Config.DEBUG)
+							_log.warning("Detached client has player still in world: removing.");
+
+						World.getInstance().removePlayer(activeChar);
+					}
+					savedClient.setActiveChar(null);
+				}
+
 				if (Config.DEBUG)
-					_log.info("Old Client was disconnected: Offline or OfflineMode --> Login Again");
-				
+					_log.info("Old Client was detached: Login allowed.");
+
 				_accountsInGameServer.put(account, client);
 				return true;
 			}
+
 			if (Config.DEBUG)
-				_log.info("Old Client was online --> Close Old Client Connection");
-			
+				_log.info("Old Client still active: closing connection.");
+
+			// Desconecta e limpa referencias antigas
+			if (activeChar != null)
+			{
+				if (World.getInstance().getPlayer(activeChar.getObjectId()) != null)
+				{
+					World.getInstance().removePlayer(activeChar);
+				}
+				savedClient.setActiveChar(null);
+			}
+
 			savedClient.closeNow();
 			_accountsInGameServer.remove(account);
 			return false;
 		}
-		
+
+		// Verificasao adicional: garantir que nao ha um player preso na memoria
+		final Player existing = World.getInstance().getPlayer(account);
+		if (existing != null)
+		{
+			if (Config.DEBUG)
+				_log.warning("Player with account '" + account + "' still exists in world! Removing...");
+
+			World.getInstance().removePlayer(existing);
+		}
+
 		if (Config.DEBUG)
-			_log.info("Client was not online --> New Client Connection");
-		
+			_log.info("No old client: new login accepted.");
+
 		_accountsInGameServer.put(account, client);
 		return true;
 	}

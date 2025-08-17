@@ -1,11 +1,9 @@
 package net.sf.l2j.gameserver.scripting.scripts.ai.individual;
 
 
+import net.sf.l2j.Config;
 import net.sf.l2j.commons.math.MathUtil;
 import net.sf.l2j.commons.random.Rnd;
-
-import net.sf.l2j.Config;
-
 import net.sf.l2j.gameserver.data.SkillTable;
 import net.sf.l2j.gameserver.geoengine.GeoEngine;
 import net.sf.l2j.gameserver.instancemanager.GrandBossManager;
@@ -25,6 +23,8 @@ import net.sf.l2j.gameserver.network.serverpackets.SpecialCamera;
 import net.sf.l2j.gameserver.scripting.EventType;
 import net.sf.l2j.gameserver.scripting.scripts.ai.L2AttackableAIScript;
 import net.sf.l2j.gameserver.templates.StatsSet;
+
+import Dev.BossTimeRespawn.TimeEpicBossManager;
 
 public class Valakas extends L2AttackableAIScript
 {
@@ -282,45 +282,83 @@ public class Valakas extends L2AttackableAIScript
 	}
 	
 	@Override
+//	public String onKill(Npc npc, Player killer, boolean isPet)
+//	{
+//		// Cancel skill_task and regen_task.
+//		cancelQuestTimer("regen_task", npc, null);
+//		cancelQuestTimer("skill_task", npc, null);
+//		
+//		// Launch death animation.
+//		VALAKAS_LAIR.broadcastPacket(new PlaySound(1, "B03_D", npc));
+//		
+//		//startQuestTimer("die_1", 300, npc, null, false); // 300
+//		//startQuestTimer("die_2", 600, npc, null, false); // 300
+//		//startQuestTimer("die_3", 3800, npc, null, false); // 3200
+//		//startQuestTimer("die_4", 8200, npc, null, false); // 4400
+//		//startQuestTimer("die_5", 8700, npc, null, false); // 500
+//		//startQuestTimer("die_6", 13300, npc, null, false); // 4600
+//		//startQuestTimer("die_7", 14000, npc, null, false); // 700
+//		startQuestTimer("die_8", 16500, npc, null, false); // 2500
+//		
+//		
+//		GrandBossManager.getInstance().setBossStatus(VALAKAS, DEAD);
+//		
+//		long respawnTime;
+//		if(Config.VALAKAS_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.VALAKAS_CUSTOM_SPAWN_TIMES) != null)
+//        {
+//			respawnTime = Config.FindNext(Config.VALAKAS_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+//		}
+//        else
+//        {
+//    		respawnTime = (long) Config.SPAWN_INTERVAL_VALAKAS + Rnd.get(-Config.RANDOM_SPAWN_TIME_VALAKAS, Config.RANDOM_SPAWN_TIME_VALAKAS);
+//    		respawnTime *= 3600000;
+//        }
+//		
+//		startQuestTimer("valakas_unlock", respawnTime, null, null, false);
+//		
+//		// also save the respawn time so that the info is maintained past reboots
+//		StatsSet info = GrandBossManager.getInstance().getStatsSet(VALAKAS);
+//		info.set("respawn_time", System.currentTimeMillis() + respawnTime);
+//		GrandBossManager.getInstance().setStatsSet(VALAKAS, info);
+//		
+//		return super.onKill(npc, killer, isPet);
+//	}
 	public String onKill(Npc npc, Player killer, boolean isPet)
 	{
 		// Cancel skill_task and regen_task.
 		cancelQuestTimer("regen_task", npc, null);
 		cancelQuestTimer("skill_task", npc, null);
-		
-		// Launch death animation.
+
+		// Death animation.
 		VALAKAS_LAIR.broadcastPacket(new PlaySound(1, "B03_D", npc));
-		
-		//startQuestTimer("die_1", 300, npc, null, false); // 300
-		//startQuestTimer("die_2", 600, npc, null, false); // 300
-		//startQuestTimer("die_3", 3800, npc, null, false); // 3200
-		//startQuestTimer("die_4", 8200, npc, null, false); // 4400
-		//startQuestTimer("die_5", 8700, npc, null, false); // 500
-		//startQuestTimer("die_6", 13300, npc, null, false); // 4600
-		//startQuestTimer("die_7", 14000, npc, null, false); // 700
-		startQuestTimer("die_8", 16500, npc, null, false); // 2500
-		
-		
+
+		// Cinemática de morte
+		startQuestTimer("die_1", 300, npc, null, false);
+		startQuestTimer("die_2", 600, npc, null, false);
+		startQuestTimer("die_3", 3800, npc, null, false);
+		startQuestTimer("die_4", 8200, npc, null, false);
+		startQuestTimer("die_5", 8700, npc, null, false);
+		startQuestTimer("die_6", 13300, npc, null, false);
+		startQuestTimer("die_7", 14000, npc, null, false);
+		startQuestTimer("die_8", 16500, npc, null, false);
+
 		GrandBossManager.getInstance().setBossStatus(VALAKAS, DEAD);
-		
-		long respawnTime;
-		if(Config.VALAKAS_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.VALAKAS_CUSTOM_SPAWN_TIMES) != null)
-        {
-			respawnTime = Config.FindNext(Config.VALAKAS_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+
+		// 🆕 Tempo fixo do XML
+		long respawnTime = TimeEpicBossManager.getInstance().getMillisUntilNextRespawn(npc.getNpcId());
+
+		if (respawnTime <= 0)
+		{
+			respawnTime = 48 * 60 * 60 * 1000L; // fallback de 48h se nada estiver definido
+			_log.warning("TimeEpicBoss: No respawn configured for Valakas (29028), using fallback.");
 		}
-        else
-        {
-    		respawnTime = (long) Config.SPAWN_INTERVAL_VALAKAS + Rnd.get(-Config.RANDOM_SPAWN_TIME_VALAKAS, Config.RANDOM_SPAWN_TIME_VALAKAS);
-    		respawnTime *= 3600000;
-        }
-		
+
 		startQuestTimer("valakas_unlock", respawnTime, null, null, false);
-		
-		// also save the respawn time so that the info is maintained past reboots
+
 		StatsSet info = GrandBossManager.getInstance().getStatsSet(VALAKAS);
 		info.set("respawn_time", System.currentTimeMillis() + respawnTime);
 		GrandBossManager.getInstance().setStatsSet(VALAKAS, info);
-		
+
 		return super.onKill(npc, killer, isPet);
 	}
 	

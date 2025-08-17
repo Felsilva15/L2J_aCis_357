@@ -128,6 +128,8 @@ import net.sf.l2j.gameserver.xmlfactory.XMLDocumentFactory;
 import net.sf.l2j.util.DeadLockDetector;
 import net.sf.l2j.util.IPv4Filter;
 
+import Dev.BossTimeRespawn.TimeEpicBossManager;
+import Dev.BossTimeRespawn.TimeRaidBossManager;
 import Dev.Community.MarketPlace.AuctionTableCommunity;
 import Dev.DollsSystem.DollsTable;
 import Dev.Event.BossEvent.KTBConfig;
@@ -332,6 +334,8 @@ public class GameServer
 		DimensionalRiftManager.getInstance();
 		ClanRankingConfig.load();
 		ClanRankingManager.getInstance();
+		TimeRaidBossManager.getInstance();
+		TimeEpicBossManager.getInstance();
 		
 		StringUtil.printSection("OfflineShop Started");
 		if ((Config.OFFLINE_TRADE_ENABLE || Config.OFFLINE_CRAFT_ENABLE) && Config.RESTORE_OFFLINERS)

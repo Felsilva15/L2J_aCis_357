@@ -24,6 +24,8 @@ import net.sf.l2j.gameserver.network.serverpackets.PlaySound;
 import net.sf.l2j.gameserver.scripting.scripts.ai.L2AttackableAIScript;
 import net.sf.l2j.gameserver.templates.StatsSet;
 
+import Dev.BossTimeRespawn.TimeEpicBossManager;
+
 public class Orfen extends L2AttackableAIScript
 {
 	private static final L2BossZone ORFEN_LAIR = ZoneManager.getInstance().getZoneById(110013, L2BossZone.class);
@@ -223,32 +225,56 @@ public class Orfen extends L2AttackableAIScript
 	}
 	
 	@Override
+//	public String onKill(Npc npc, Player killer, boolean isPet)
+//	{
+//		npc.broadcastPacket(new PlaySound(1, "BS02_D", npc));
+//		GrandBossManager.getInstance().setBossStatus(ORFEN, DEAD);
+//		
+//		
+//		long respawnTime;
+//		if(Config.ORFEN_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.ORFEN_CUSTOM_SPAWN_TIMES) != null)
+//        {
+//			respawnTime = Config.FindNext(Config.ORFEN_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+//		}
+//        else
+//        {
+//    		respawnTime = (long) Config.SPAWN_INTERVAL_ORFEN + Rnd.get(-Config.RANDOM_SPAWN_TIME_ORFEN, Config.RANDOM_SPAWN_TIME_ORFEN);
+//    		respawnTime *= 3600000;
+//        }
+//		
+//		
+//		startQuestTimer("orfen_unlock", respawnTime, null, null, false);
+//		
+//		// also save the respawn time so that the info is maintained past reboots
+//		StatsSet info = GrandBossManager.getInstance().getStatsSet(ORFEN);
+//		info.set("respawn_time", System.currentTimeMillis() + respawnTime);
+//		GrandBossManager.getInstance().setStatsSet(ORFEN, info);
+//		
+//		cancelQuestTimer("check_orfen_pos", npc, null);
+//		return super.onKill(npc, killer, isPet);
+//	}
 	public String onKill(Npc npc, Player killer, boolean isPet)
 	{
 		npc.broadcastPacket(new PlaySound(1, "BS02_D", npc));
 		GrandBossManager.getInstance().setBossStatus(ORFEN, DEAD);
-		
-		
-		long respawnTime;
-		if(Config.ORFEN_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.ORFEN_CUSTOM_SPAWN_TIMES) != null)
-        {
-			respawnTime = Config.FindNext(Config.ORFEN_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+
+		// 🆕 Tempo fixo via XML
+		long respawnTime = TimeEpicBossManager.getInstance().getMillisUntilNextRespawn(npc.getNpcId());
+
+		if (respawnTime <= 0)
+		{
+			respawnTime = 36 * 60 * 60 * 1000L; // fallback de 36h
+			_log.warning("TimeEpicBoss: No respawn configured for Orfen (" + npc.getNpcId() + "), using fallback.");
 		}
-        else
-        {
-    		respawnTime = (long) Config.SPAWN_INTERVAL_ORFEN + Rnd.get(-Config.RANDOM_SPAWN_TIME_ORFEN, Config.RANDOM_SPAWN_TIME_ORFEN);
-    		respawnTime *= 3600000;
-        }
-		
-		
+
 		startQuestTimer("orfen_unlock", respawnTime, null, null, false);
-		
-		// also save the respawn time so that the info is maintained past reboots
+
 		StatsSet info = GrandBossManager.getInstance().getStatsSet(ORFEN);
 		info.set("respawn_time", System.currentTimeMillis() + respawnTime);
 		GrandBossManager.getInstance().setStatsSet(ORFEN, info);
-		
+
 		cancelQuestTimer("check_orfen_pos", npc, null);
+
 		return super.onKill(npc, killer, isPet);
 	}
 	

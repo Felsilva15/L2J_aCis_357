@@ -3,14 +3,13 @@ package net.sf.l2j.gameserver.scripting.scripts.ai.individual;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import net.sf.l2j.commons.random.Rnd;
-
 import net.sf.l2j.Config;
-
+import net.sf.l2j.commons.random.Rnd;
 import net.sf.l2j.gameserver.instancemanager.GrandBossManager;
 import net.sf.l2j.gameserver.instancemanager.ZoneManager;
 import net.sf.l2j.gameserver.model.L2Skill;
 import net.sf.l2j.gameserver.model.actor.Npc;
+import net.sf.l2j.gameserver.model.actor.ai.CtrlIntention;
 import net.sf.l2j.gameserver.model.actor.instance.GrandBoss;
 import net.sf.l2j.gameserver.model.actor.instance.Player;
 import net.sf.l2j.gameserver.model.location.SpawnLocation;
@@ -20,6 +19,8 @@ import net.sf.l2j.gameserver.network.serverpackets.SocialAction;
 import net.sf.l2j.gameserver.network.serverpackets.SpecialCamera;
 import net.sf.l2j.gameserver.scripting.scripts.ai.L2AttackableAIScript;
 import net.sf.l2j.gameserver.templates.StatsSet;
+
+import Dev.BossTimeRespawn.TimeEpicBossManager;
 
 public class Sailren extends L2AttackableAIScript
 {
@@ -229,40 +230,111 @@ public class Sailren extends L2AttackableAIScript
 	}
 	
 	@Override
+//	public String onKill(Npc npc, Player killer, boolean isPet)
+//	{	
+//		    if (npc.getNpcId() == SAILREN)
+//				{
+//					// Set Sailren as dead.
+//					GrandBossManager.getInstance().setBossStatus(SAILREN, DEAD);
+//					
+//					// Spawn the Teleport Cube for 10min.
+//					addSpawn(CUBE, npc, false, INTERVAL_CHECK, false);
+//					
+//					// Cancel inactivity task.
+//					cancelQuestTimers("inactivity");
+//					
+//					long respawnTime;
+//					if(Config.SAILREN_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.SAILREN_CUSTOM_SPAWN_TIMES) != null)
+//			        {
+//						respawnTime = Config.FindNext(Config.SAILREN_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+//					}
+//			        else
+//			        {
+//						respawnTime = (long) Config.SPAWN_INTERVAL_SAILREN + Rnd.get(-Config.RANDOM_SPAWN_TIME_SAILREN, Config.RANDOM_SPAWN_TIME_SAILREN);
+//						respawnTime *= 3600000;
+//			        }
+//					
+//					startQuestTimer("oust", INTERVAL_CHECK, null, null, false);
+//					startQuestTimer("unlock", respawnTime, null, null, false);
+//					
+//					// Save the respawn time so that the info is maintained past reboots.
+//					final StatsSet info = GrandBossManager.getInstance().getStatsSet(SAILREN);
+//					info.set("respawn_time", System.currentTimeMillis() + respawnTime);
+//					GrandBossManager.getInstance().setStatsSet(SAILREN, info);
+//				}
+//		
+//		
+//		return super.onKill(npc, killer, isPet);
+//	}
 	public String onKill(Npc npc, Player killer, boolean isPet)
-	{	
-		    if (npc.getNpcId() == SAILREN)
+	{
+		if (!_mobs.contains(npc) || !SAILREN_LAIR.getAllowedPlayers().contains(killer.getObjectId()))
+			return null;
+
+		switch (npc.getNpcId())
+		{
+			case VELOCIRAPTOR:
+				// Once the 3 Velociraptors are dead, spawn a Pterosaur.
+				if (_mobs.remove(npc) && _mobs.isEmpty())
+				{
+					final Npc temp = addSpawn(PTEROSAUR, SAILREN_LOC, false, 0, false);
+					temp.setRunning();
+					temp.getAI().setIntention(CtrlIntention.ATTACK, killer);
+					_mobs.add(temp);
+				}
+				break;
+
+			case PTEROSAUR:
+				// Pterosaur is dead, spawn a Trex.
+				if (_mobs.remove(npc))
+				{
+					final Npc temp = addSpawn(TREX, SAILREN_LOC, false, 0, false);
+					temp.setRunning();
+					temp.getAI().setIntention(CtrlIntention.ATTACK, killer);
+					temp.broadcastNpcSay("?");
+					_mobs.add(temp);
+				}
+				break;
+
+			case TREX:
+				// Trex is dead, wait 5min and spawn Sailren.
+				if (_mobs.remove(npc))
+					startQuestTimer("spawn", Config.WAIT_TIME_SAILREN, npc, killer, false);
+				break;
+
+			case SAILREN:
+				if (_mobs.remove(npc))
 				{
 					// Set Sailren as dead.
 					GrandBossManager.getInstance().setBossStatus(SAILREN, DEAD);
-					
+
 					// Spawn the Teleport Cube for 10min.
 					addSpawn(CUBE, npc, false, INTERVAL_CHECK, false);
-					
+
 					// Cancel inactivity task.
 					cancelQuestTimers("inactivity");
-					
-					long respawnTime;
-					if(Config.SAILREN_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.SAILREN_CUSTOM_SPAWN_TIMES) != null)
-			        {
-						respawnTime = Config.FindNext(Config.SAILREN_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+
+					// 🆕 Tempo via TimeEpicBossManager
+					long respawnTime = TimeEpicBossManager.getInstance().getMillisUntilNextRespawn(SAILREN);
+
+					if (respawnTime <= 0)
+					{
+						respawnTime = Config.SPAWN_INTERVAL_SAILREN * 3600000L;
+						respawnTime += Rnd.get(-Config.RANDOM_SPAWN_TIME_SAILREN, Config.RANDOM_SPAWN_TIME_SAILREN) * 3600000L;
+						_log.warning("TimeEpicBoss: No respawn configured for Sailren (" + SAILREN + "), using fallback.");
 					}
-			        else
-			        {
-						respawnTime = (long) Config.SPAWN_INTERVAL_SAILREN + Rnd.get(-Config.RANDOM_SPAWN_TIME_SAILREN, Config.RANDOM_SPAWN_TIME_SAILREN);
-						respawnTime *= 3600000;
-			        }
-					
+
 					startQuestTimer("oust", INTERVAL_CHECK, null, null, false);
 					startQuestTimer("unlock", respawnTime, null, null, false);
-					
-					// Save the respawn time so that the info is maintained past reboots.
+
+					// Save respawn time for persistence
 					final StatsSet info = GrandBossManager.getInstance().getStatsSet(SAILREN);
 					info.set("respawn_time", System.currentTimeMillis() + respawnTime);
 					GrandBossManager.getInstance().setStatsSet(SAILREN, info);
 				}
-		
-		
+				break;
+		}
+
 		return super.onKill(npc, killer, isPet);
 	}
 	

@@ -551,7 +551,8 @@ public class AttackableAI extends CreatureAI implements Runnable
 	protected void thinkAttack()
 	{
 		final Attackable npc = getActiveChar();
-		if (npc.isCastingNow())
+	//	if (npc.isCastingNow())
+		if (npc == null || npc.isCastingNow() || npc.isAttackingNow())
 			return;
 		
 		// Pickup most hated character.

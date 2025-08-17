@@ -28,6 +28,8 @@ import net.sf.l2j.gameserver.scripting.EventType;
 import net.sf.l2j.gameserver.scripting.scripts.ai.L2AttackableAIScript;
 import net.sf.l2j.gameserver.templates.StatsSet;
 
+import Dev.BossTimeRespawn.TimeEpicBossManager;
+
 /**
  * That AI is heavily based on Valakas/Baium scripts.<br>
  * It uses the 29019 dummy id in order to register it (addBoss and statsSet), but 3 different templates according the situation.
@@ -272,34 +274,71 @@ public class Antharas extends L2AttackableAIScript
 	}
 	
 	@Override
+//	public String onKill(Npc npc, Player killer, boolean isPet)
+//	{
+//		if (npc.getNpcId() == _antharasId)
+//		{
+//			// Drop tasks.
+//			dropTimers(npc);
+//			
+////			// Launch death animation.
+////			ANTHARAS_LAIR.broadcastPacket(new SpecialCamera(npc.getObjectId(), 1200, 20, -10, 10000, 13000, 0, 0, 0, 0));
+//			ANTHARAS_LAIR.broadcastPacket(new PlaySound(1, "BS01_D", npc));
+//			startQuestTimer("die_1", 8000, null, null, false);
+//			
+//			GrandBossManager.getInstance().setBossStatus(ANTHARAS, DEAD);
+//			
+//			
+//			long respawnTime;
+//            if(Config.ANTHARAS_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.ANTHARAS_CUSTOM_SPAWN_TIMES) != null)
+//            {
+//				respawnTime = Config.FindNext(Config.ANTHARAS_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+//			}
+//            else
+//            {
+//    			respawnTime = (long) Config.SPAWN_INTERVAL_ANTHARAS + Rnd.get(-Config.RANDOM_SPAWN_TIME_ANTHARAS, Config.RANDOM_SPAWN_TIME_ANTHARAS);
+//    			respawnTime *= 3600000;
+//            }
+//			
+//			startQuestTimer("antharas_unlock", respawnTime, null, null, false);
+//			
+//			StatsSet info = GrandBossManager.getInstance().getStatsSet(ANTHARAS);
+//			info.set("respawn_time", System.currentTimeMillis() + respawnTime);
+//			GrandBossManager.getInstance().setStatsSet(ANTHARAS, info);
+//		}
+//		else
+//		{
+//			cancelQuestTimer("self_destruct", npc, null);
+//			_monsters.remove(npc);
+//		}
+//		
+//		return super.onKill(npc, killer, isPet);
+//	}
 	public String onKill(Npc npc, Player killer, boolean isPet)
 	{
 		if (npc.getNpcId() == _antharasId)
 		{
 			// Drop tasks.
 			dropTimers(npc);
-			
-//			// Launch death animation.
-//			ANTHARAS_LAIR.broadcastPacket(new SpecialCamera(npc.getObjectId(), 1200, 20, -10, 10000, 13000, 0, 0, 0, 0));
+
+			// Death cinematic.
+			ANTHARAS_LAIR.broadcastPacket(new SpecialCamera(npc.getObjectId(), 1200, 20, -10, 10000, 13000, 0, 0, 0, 0));
 			ANTHARAS_LAIR.broadcastPacket(new PlaySound(1, "BS01_D", npc));
 			startQuestTimer("die_1", 8000, null, null, false);
-			
+
 			GrandBossManager.getInstance().setBossStatus(ANTHARAS, DEAD);
-			
-			
-			long respawnTime;
-            if(Config.ANTHARAS_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.ANTHARAS_CUSTOM_SPAWN_TIMES) != null)
-            {
-				respawnTime = Config.FindNext(Config.ANTHARAS_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+
+			// 🆕 Tempo fixo do XML
+			long respawnTime = TimeEpicBossManager.getInstance().getMillisUntilNextRespawn(npc.getNpcId());
+
+			if (respawnTime <= 0)
+			{
+				respawnTime = 48 * 60 * 60 * 1000L; // fallback de 48h se não houver horário no XML
+				_log.warning("TimeEpicBoss: No respawn configured for Antharas (" + npc.getNpcId() + "), using fallback.");
 			}
-            else
-            {
-    			respawnTime = (long) Config.SPAWN_INTERVAL_ANTHARAS + Rnd.get(-Config.RANDOM_SPAWN_TIME_ANTHARAS, Config.RANDOM_SPAWN_TIME_ANTHARAS);
-    			respawnTime *= 3600000;
-            }
-			
+
 			startQuestTimer("antharas_unlock", respawnTime, null, null, false);
-			
+
 			StatsSet info = GrandBossManager.getInstance().getStatsSet(ANTHARAS);
 			info.set("respawn_time", System.currentTimeMillis() + respawnTime);
 			GrandBossManager.getInstance().setStatsSet(ANTHARAS, info);
@@ -309,7 +348,7 @@ public class Antharas extends L2AttackableAIScript
 			cancelQuestTimer("self_destruct", npc, null);
 			_monsters.remove(npc);
 		}
-		
+
 		return super.onKill(npc, killer, isPet);
 	}
 	

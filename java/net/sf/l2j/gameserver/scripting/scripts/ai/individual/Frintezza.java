@@ -38,6 +38,8 @@ import net.sf.l2j.gameserver.network.serverpackets.SystemMessage;
 import net.sf.l2j.gameserver.scripting.scripts.ai.L2AttackableAIScript;
 import net.sf.l2j.gameserver.skills.AbnormalEffect;
 import net.sf.l2j.gameserver.templates.StatsSet;
+
+import Dev.BossTimeRespawn.TimeEpicBossManager;
  
 public class Frintezza extends L2AttackableAIScript
 {
@@ -2396,102 +2398,192 @@ public class Frintezza extends L2AttackableAIScript
     }
     
     @Override
+//    public String onKill(Npc npc, Player killer, boolean isPet)
+//    {
+//        if (npc.getNpcId() == SCARLET2)
+//        {
+//            _Zone.broadcastPacket(new PlaySound(1, "BS01_D", npc));
+//            
+//            startQuestTimer("stop_pc", 0L, null, null, false);
+//            startQuestTimer("stop_npc", 0L, npc, null, false);
+//            startQuestTimer("morph_16", 0L, npc, null, false);
+//            
+//            GrandBossManager.getInstance().setBossStatus(FRINTEZZA, 3);
+//            
+//    		long respawnTime;
+//            if(Config.FRINTEZZA_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.FRINTEZZA_CUSTOM_SPAWN_TIMES) != null)
+//            {
+//				respawnTime = Config.FindNext(Config.FRINTEZZA_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+//			}
+//            else
+//            {
+//                respawnTime = Config.SPAWN_INTERVAL_FRINTEZZA + Rnd.get(-Config.RANDOM_SPAWN_TIME_FRINTEZZA, Config.RANDOM_SPAWN_TIME_FRINTEZZA);
+//                respawnTime *= 3600000L;
+//            }
+//            
+//            cancelQuestTimers("spawn_minion");
+//            cancelQuestTimers("frintezza_despawn");
+//            startQuestTimer("close", 0L, null, null, false);
+//            startQuestTimer("rooms_del", 0L, npc, null, false);
+//            startQuestTimer("minions_despawn", 0L, null, null, false);
+//           // startQuestTimer("remove_players", 900000L, null, null, false);
+//            startQuestTimer("frintezza_unlock", respawnTime, null, null, false);
+//            
+//            StatsSet info = GrandBossManager.getInstance().getStatsSet(FRINTEZZA);
+//            info.set("respawn_time", System.currentTimeMillis() + respawnTime);
+//            GrandBossManager.getInstance().setStatsSet(FRINTEZZA, info);
+//        }
+//        else if (npc.getNpcId() == 18328)
+//        {
+//            _KillHallAlarmDevice += 1;
+//            if (_KillHallAlarmDevice == 3)
+//            {
+//                for (int i = 25150051; i <= 25150058; i++)
+//                {
+//                    DoorTable.getInstance().getDoor(i).openMe();
+//                }
+//            }
+//            else if (_KillHallAlarmDevice == 4)
+//            {
+//                startQuestTimer("room1_del", 100L, npc, null, false);
+//                startQuestTimer("room2_spawn", 100L, npc, null, false);
+//                DoorTable.getInstance().getDoor(25150042).openMe();
+//                DoorTable.getInstance().getDoor(25150043).openMe();
+//            }
+//        }
+//        else if (npc.getNpcId() == 18339)
+//        {
+//            _KillDarkChoirPlayer += 1;
+//            if (_KillDarkChoirPlayer == 2)
+//            {
+//               // DoorTable.getInstance().getDoor(25150042).closeMe();
+//                //DoorTable.getInstance().getDoor(25150043).closeMe();
+//                for (int i = 25150061; i <= 25150070; i++)
+//                {
+//                    DoorTable.getInstance().getDoor(i).openMe();
+//                }
+//                startQuestTimer("room2_spawn2", 1000L, npc, null, false);
+//            }
+//        }
+//        else if (npc.getNpcId() == 18334)
+//        {
+//            _KillDarkChoirCaptain += 1;
+//            if (_KillDarkChoirCaptain == 8)
+//            {
+//                startQuestTimer("room2_del", 100L, npc, null, false);
+//                
+//                DoorTable.getInstance().getDoor(25150045).openMe();
+//                DoorTable.getInstance().getDoor(25150046).openMe();
+//                
+//                startQuestTimer("waiting", Config.WAIT_TIME_FRINTEZZA, npc, null, false);
+//                waiter(Config.WAIT_TIME_FRINTEZZA);
+//                if (GrandBossManager.getInstance().getBossStatus(FRINTEZZA) == WAITING)
+//        		{
+//                	GrandBossManager._announce = true;
+//        			ThreadPool.schedule(new Runnable()
+//        			{
+//        				@Override
+//        				public void run()
+//        				{
+//        					waiter(Config.WAIT_TIME_FRINTEZZA);
+//        				}
+//        			}, 1);
+//        		}
+//                cancelQuestTimers("room_final");
+//            }
+//        }
+//        return super.onKill(npc, killer, isPet);
+//    }
     public String onKill(Npc npc, Player killer, boolean isPet)
-    {
-        if (npc.getNpcId() == SCARLET2)
-        {
-            _Zone.broadcastPacket(new PlaySound(1, "BS01_D", npc));
-            
-            startQuestTimer("stop_pc", 0L, null, null, false);
-            startQuestTimer("stop_npc", 0L, npc, null, false);
-            startQuestTimer("morph_16", 0L, npc, null, false);
-            
-            GrandBossManager.getInstance().setBossStatus(FRINTEZZA, 3);
-            
-    		long respawnTime;
-            if(Config.FRINTEZZA_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.FRINTEZZA_CUSTOM_SPAWN_TIMES) != null)
-            {
-				respawnTime = Config.FindNext(Config.FRINTEZZA_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
-			}
-            else
-            {
-                respawnTime = Config.SPAWN_INTERVAL_FRINTEZZA + Rnd.get(-Config.RANDOM_SPAWN_TIME_FRINTEZZA, Config.RANDOM_SPAWN_TIME_FRINTEZZA);
-                respawnTime *= 3600000L;
-            }
-            
-            cancelQuestTimers("spawn_minion");
-            cancelQuestTimers("frintezza_despawn");
-            startQuestTimer("close", 0L, null, null, false);
-            startQuestTimer("rooms_del", 0L, npc, null, false);
-            startQuestTimer("minions_despawn", 0L, null, null, false);
-           // startQuestTimer("remove_players", 900000L, null, null, false);
-            startQuestTimer("frintezza_unlock", respawnTime, null, null, false);
-            
-            StatsSet info = GrandBossManager.getInstance().getStatsSet(FRINTEZZA);
-            info.set("respawn_time", System.currentTimeMillis() + respawnTime);
-            GrandBossManager.getInstance().setStatsSet(FRINTEZZA, info);
-        }
-        else if (npc.getNpcId() == 18328)
-        {
-            _KillHallAlarmDevice += 1;
-            if (_KillHallAlarmDevice == 3)
-            {
-                for (int i = 25150051; i <= 25150058; i++)
-                {
-                    DoorTable.getInstance().getDoor(i).openMe();
-                }
-            }
-            else if (_KillHallAlarmDevice == 4)
-            {
-                startQuestTimer("room1_del", 100L, npc, null, false);
-                startQuestTimer("room2_spawn", 100L, npc, null, false);
-                DoorTable.getInstance().getDoor(25150042).openMe();
-                DoorTable.getInstance().getDoor(25150043).openMe();
-            }
-        }
-        else if (npc.getNpcId() == 18339)
-        {
-            _KillDarkChoirPlayer += 1;
-            if (_KillDarkChoirPlayer == 2)
-            {
-               // DoorTable.getInstance().getDoor(25150042).closeMe();
-                //DoorTable.getInstance().getDoor(25150043).closeMe();
-                for (int i = 25150061; i <= 25150070; i++)
-                {
-                    DoorTable.getInstance().getDoor(i).openMe();
-                }
-                startQuestTimer("room2_spawn2", 1000L, npc, null, false);
-            }
-        }
-        else if (npc.getNpcId() == 18334)
-        {
-            _KillDarkChoirCaptain += 1;
-            if (_KillDarkChoirCaptain == 8)
-            {
-                startQuestTimer("room2_del", 100L, npc, null, false);
-                
-                DoorTable.getInstance().getDoor(25150045).openMe();
-                DoorTable.getInstance().getDoor(25150046).openMe();
-                
-                startQuestTimer("waiting", Config.WAIT_TIME_FRINTEZZA, npc, null, false);
-                waiter(Config.WAIT_TIME_FRINTEZZA);
-                if (GrandBossManager.getInstance().getBossStatus(FRINTEZZA) == WAITING)
-        		{
-                	GrandBossManager._announce = true;
-        			ThreadPool.schedule(new Runnable()
-        			{
-        				@Override
-        				public void run()
-        				{
-        					waiter(Config.WAIT_TIME_FRINTEZZA);
-        				}
-        			}, 1);
-        		}
-                cancelQuestTimers("room_final");
-            }
-        }
-        return super.onKill(npc, killer, isPet);
-    }
+	{
+	    if (npc.getNpcId() == FRINTEZZA)
+	    {
+	        // Emite um som quando o alarme é destruído
+	    	 _Zone.broadcastPacket(new PlaySound(1, "BS01_D", npc));
+
+	        // Dispara timers para eventos subsequentes
+	        startQuestTimer("stop_pc", 0, null, null, false);
+	        startQuestTimer("stop_npc", 0, npc, null, false);
+	        startQuestTimer("morph_16", 0, npc, null, false);
+
+	        // Marca o boss como morto
+	        GrandBossManager.getInstance().setBossStatus(FRINTEZZA, DEAD);
+
+	        // 🆕 Respawn fixo via TimeEpicBossManager
+	        long respawnTime = TimeEpicBossManager.getInstance().getMillisUntilNextRespawn(FRINTEZZA);
+
+	        if (respawnTime <= 0)
+	        {
+	            // fallback para o cálculo antigo
+	            respawnTime = (long) Config.SPAWN_INTERVAL_FRINTEZZA + Rnd.get(-Config.RANDOM_SPAWN_TIME_FRINTEZZA, Config.RANDOM_SPAWN_TIME_FRINTEZZA);
+	            respawnTime *= 3600000; // converte horas para ms
+	            _log.warning("TimeEpicBoss: No respawn configured for Frintezza (" + FRINTEZZA + "), using fallback.");
+	        }
+
+	        // Cancela e dispara timers necessários
+	        cancelQuestTimers("spawn_minion");
+	        cancelQuestTimers("frintezza_despawn");
+	        startQuestTimer("close", 0, null, null, false);
+	        startQuestTimer("rooms_del", 0, npc, null, false);
+	        startQuestTimer("minions_despawn", 0, null, null, false);
+	        startQuestTimer("remove_players", 900000, null, null, false);
+	        startQuestTimer("frintezza_unlock", respawnTime, null, null, false);
+
+	        // Atualiza respawn no GrandBossManager para persistência
+	        StatsSet info = GrandBossManager.getInstance().getStatsSet(FRINTEZZA);
+	        info.set("respawn_time", System.currentTimeMillis() + respawnTime);
+	        GrandBossManager.getInstance().setStatsSet(FRINTEZZA, info);
+	    }
+	    else if (npc.getNpcId() == 18328)
+	    {
+	        _KillHallAlarmDevice++;
+	        if (_KillHallAlarmDevice == 3) // Abre as paredes após 3 alarmes mortos
+	        {
+	            for (int i = 25150051; i <= 25150058; i++)
+	                DoorTable.getInstance().getDoor(i).openMe();
+	        }
+	        else if (_KillHallAlarmDevice == 4)
+	        {
+	            startQuestTimer("room1_del", 100, npc, null, false); // Deleta a sala 1
+	            startQuestTimer("room2_spawn", 100, npc, null, false); // Spawn dos monstros da sala 2
+
+	            // Abre as portas para a sala 2
+	            DoorTable.getInstance().getDoor(25150042).openMe();
+	            DoorTable.getInstance().getDoor(25150043).openMe();
+	        }
+	    }
+	    else if (npc.getNpcId() == 18339)
+	    {
+	        _KillDarkChoirPlayer++;
+	        if (_KillDarkChoirPlayer == 2)
+	        {
+	            DoorTable.getInstance().getDoor(25150042).closeMe();
+	            DoorTable.getInstance().getDoor(25150043).closeMe();
+
+	            // Abre as portas para a próxima sala
+	            for (int i = 25150061; i <= 25150070; i++)
+	                DoorTable.getInstance().getDoor(i).openMe();
+
+	            startQuestTimer("room2_spawn2", 1000, npc, null, false); // Dispara o spawn de monstros
+	        }
+	    }
+	    else if (npc.getNpcId() == 18334)
+	    {
+	        _KillDarkChoirCaptain++;
+	        if (_KillDarkChoirCaptain == 8)
+	        {
+	            startQuestTimer("room2_del", 100, npc, null, false);
+
+	            // Abre portas da sala 2
+	            DoorTable.getInstance().getDoor(25150045).openMe();
+	            DoorTable.getInstance().getDoor(25150046).openMe();
+	            startQuestTimer("waiting", Config.WAIT_TIME_FRINTEZZA, npc, null, false);
+	            cancelQuestTimers("room_final");
+	        }
+	    }
+
+	    return super.onKill(npc, killer, isPet);
+	}
     
 	public static void waiter(long interval)
 	{

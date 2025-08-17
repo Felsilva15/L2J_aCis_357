@@ -29,6 +29,8 @@ import net.sf.l2j.gameserver.scripting.EventType;
 import net.sf.l2j.gameserver.scripting.scripts.ai.L2AttackableAIScript;
 import net.sf.l2j.gameserver.templates.StatsSet;
 
+import Dev.BossTimeRespawn.TimeEpicBossManager;
+
 /**
  * Following animations are handled in that time tempo :
  * <ul>
@@ -336,46 +338,83 @@ public class Baium extends L2AttackableAIScript
 	}	
 	
 	@Override
+//	public String onKill(Npc npc, Player killer, boolean isPet)
+//	{
+//		cancelQuestTimer("baium_despawn", npc, null);
+//		npc.broadcastPacket(new PlaySound(1, "BS01_D", npc));
+//		
+//		// spawn the "Teleportation Cubic" for 15 minutes (to allow players to exit the lair)
+//		addSpawn(29055, 115203, 16620, 10078, 0, false, 900000, false);
+//		
+//		long respawnTime;
+//		if(Config.BAIUM_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.BAIUM_CUSTOM_SPAWN_TIMES) != null)
+//        {
+//			respawnTime = Config.FindNext(Config.BAIUM_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+//		}
+//		else
+//        {
+//			respawnTime = (long) Config.SPAWN_INTERVAL_BAIUM + Rnd.get(-Config.RANDOM_SPAWN_TIME_BAIUM, Config.RANDOM_SPAWN_TIME_BAIUM);
+//			respawnTime *= 3600000;
+//        }
+//		
+//		GrandBossManager.getInstance().setBossStatus(LIVE_BAIUM, DEAD);
+//		startQuestTimer("baium_unlock", respawnTime, null, null, false);
+//		
+//		StatsSet info = GrandBossManager.getInstance().getStatsSet(LIVE_BAIUM);
+//		info.set("respawn_time", System.currentTimeMillis() + respawnTime);
+//		GrandBossManager.getInstance().setStatsSet(LIVE_BAIUM, info);
+//		
+//		// Unspawn angels.
+//		for (Npc minion : _minions)
+//		{
+//			minion.getSpawn().setRespawnState(false);
+//			minion.deleteMe();
+//		}
+//		_minions.clear();
+//		
+//		// Clean Baium AI
+//		cancelQuestTimer("skill_range", npc, null);
+//		
+//		// Clean angels AI
+//		cancelQuestTimer("angels_aggro_reconsider", null, null);
+//		
+//		return super.onKill(npc, killer, isPet);
+//	}
 	public String onKill(Npc npc, Player killer, boolean isPet)
 	{
 		cancelQuestTimer("baium_despawn", npc, null);
 		npc.broadcastPacket(new PlaySound(1, "BS01_D", npc));
-		
-		// spawn the "Teleportation Cubic" for 15 minutes (to allow players to exit the lair)
+
+		// Cubic para saída
 		addSpawn(29055, 115203, 16620, 10078, 0, false, 900000, false);
-		
-		long respawnTime;
-		if(Config.BAIUM_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.BAIUM_CUSTOM_SPAWN_TIMES) != null)
-        {
-			respawnTime = Config.FindNext(Config.BAIUM_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+
+		// 🆕 Tempo vindo do sistema de respawn fixo
+		long respawnTime = TimeEpicBossManager.getInstance().getMillisUntilNextRespawn(npc.getNpcId());
+
+		if (respawnTime <= 0)
+		{
+			respawnTime = 24 * 60 * 60 * 1000L; // fallback de 24h se não tiver respawn configurado
+			_log.warning("TimeEpicBoss: No respawn configured for Baium (29020), using fallback.");
 		}
-		else
-        {
-			respawnTime = (long) Config.SPAWN_INTERVAL_BAIUM + Rnd.get(-Config.RANDOM_SPAWN_TIME_BAIUM, Config.RANDOM_SPAWN_TIME_BAIUM);
-			respawnTime *= 3600000;
-        }
-		
+
 		GrandBossManager.getInstance().setBossStatus(LIVE_BAIUM, DEAD);
 		startQuestTimer("baium_unlock", respawnTime, null, null, false);
-		
+
 		StatsSet info = GrandBossManager.getInstance().getStatsSet(LIVE_BAIUM);
 		info.set("respawn_time", System.currentTimeMillis() + respawnTime);
 		GrandBossManager.getInstance().setStatsSet(LIVE_BAIUM, info);
-		
-		// Unspawn angels.
+
+		// Unspawn Angels
 		for (Npc minion : _minions)
 		{
 			minion.getSpawn().setRespawnState(false);
 			minion.deleteMe();
 		}
 		_minions.clear();
-		
-		// Clean Baium AI
+
 		cancelQuestTimer("skill_range", npc, null);
-		
-		// Clean angels AI
 		cancelQuestTimer("angels_aggro_reconsider", null, null);
-		
+
 		return super.onKill(npc, killer, isPet);
 	}
 	

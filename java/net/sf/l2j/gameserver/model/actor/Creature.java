@@ -1204,6 +1204,247 @@ public abstract class Creature extends WorldObject
 		beginCast(skill, simultaneously, target, targets);
 	}
 	
+//	private void beginCast(L2Skill skill, boolean simultaneously, Creature target, WorldObject[] targets)
+//	{
+//		if (target == null)
+//		{
+//			if (simultaneously)
+//				setIsCastingSimultaneouslyNow(false);
+//			else
+//				setIsCastingNow(false);
+//			
+//			if (this instanceof Player)
+//			{
+//				sendPacket(ActionFailed.STATIC_PACKET);
+//				getAI().setIntention(CtrlIntention.ACTIVE);
+//			}
+//			return;
+//		}
+//		
+//		// Get the casting time of the skill (base)
+//		int skillTime = (skill.getHitTime() + skill.getCoolTime());
+//		
+//		boolean effectWhileCasting = skill.getSkillType() == L2SkillType.FUSION || skill.getSkillType() == L2SkillType.SIGNET_CASTTIME;
+//		
+//		// Calculate the casting time of the skill (base + modifier of MAtkSpd)
+//		// Don't modify the skill time for FUSION skills. The skill time for those skills represent the buff time.
+//		if (!effectWhileCasting)
+//		{
+//			skillTime = Formulas.calcAtkSpd(this, skill, skillTime);
+//		}
+//		
+//		// Calculate altered Cast Speed due to BSpS/SpS
+//		if (skill.isMagic() && !effectWhileCasting)
+//		{
+//			// Only takes 70% of the time to cast a BSpS/SpS cast
+//			if (isChargedShot(ShotType.SPIRITSHOT) || isChargedShot(ShotType.BLESSED_SPIRITSHOT))
+//			{
+//				skillTime = (int) (0.70 * skillTime);
+//			}
+//		}
+//		
+//		// Don't modify skills HitTime if staticHitTime is specified for skill in datapack.
+//		if (skill.isStaticHitTime())
+//		{
+//			skillTime = skill.getHitTime() + skill.getCoolTime();
+//		}
+//		
+//		// Set the _castInterruptTime and casting status (Player already has this true)
+//		if (simultaneously)
+//		{
+//			// queue herbs and potions
+//			if (isCastingSimultaneouslyNow())
+//			{
+//				ThreadPool.schedule(new UsePotionTask(this, skill), 100);
+//				return;
+//			}
+//			setIsCastingSimultaneouslyNow(true);
+//			setLastSimultaneousSkillCast(skill);
+//		}
+//		else
+//		{
+//			setIsCastingNow(true);
+//			_castInterruptTime = System.currentTimeMillis() + skillTime / 2;
+//			setLastSkillCast(skill);
+//		}
+//		
+//		// Init the reuse time of the skill
+//		int reuseDelay = skill.getReuseDelay();
+//		
+//		if (!skill.isStaticReuse())
+//		{
+//			reuseDelay *= calcStat(skill.isMagic() ? Stats.MAGIC_REUSE_RATE : Stats.P_REUSE, 1, null, null);
+//			reuseDelay *= 333.0 / (skill.isMagic() ? getMAtkSpd() : getPAtkSpd());
+//		}
+//		
+//		boolean skillMastery = Formulas.calcSkillMastery(this, skill);
+//		
+//		// Skill reuse check
+//		if (reuseDelay > 30000 && !skillMastery)
+//			addTimeStamp(skill, reuseDelay);
+//		
+//		// Check if this skill consume mp on start casting
+//		int initmpcons = getStat().getMpInitialConsume(skill);
+//		if (initmpcons > 0)
+//		{
+//				getStatus().reduceMp(initmpcons);
+//				StatusUpdate su = new StatusUpdate(this);
+//				su.addAttribute(StatusUpdate.CUR_MP, (int) getCurrentMp());
+//				sendPacket(su);
+//		}
+//		
+//		// Disable the skill during the re-use delay and create a task EnableSkill with Medium priority to enable it at the end of the re-use delay
+//		if (reuseDelay > 10)
+//		{
+//			if (skillMastery)
+//			{
+//				reuseDelay = 100;
+//				
+//				if (getActingPlayer() != null)
+//					getActingPlayer().sendPacket(SystemMessageId.SKILL_READY_TO_USE_AGAIN);
+//			}
+//			
+//			disableSkill(skill, reuseDelay);
+//		}
+//		
+//		// Make sure that char is facing selected target
+//		if (target != this)
+//			setHeading(MathUtil.calculateHeadingFrom(this, target));
+//		
+//		// For force buff skills, start the effect as long as the player is casting.
+//		if (effectWhileCasting)
+//		{
+//			// Consume Items if necessary and Send the Server->Client packet InventoryUpdate with Item modification to all the Creature
+//			if (skill.getItemConsumeId() > 0)
+//			{
+//				if (!destroyItemByItemId("Consume", skill.getItemConsumeId(), skill.getItemConsume(), null, true))
+//				{
+//					sendPacket(SystemMessage.getSystemMessage(SystemMessageId.NOT_ENOUGH_ITEMS));
+//					if (simultaneously)
+//						setIsCastingSimultaneouslyNow(false);
+//					else
+//						setIsCastingNow(false);
+//					
+//					if (this instanceof Player)
+//						getAI().setIntention(CtrlIntention.ACTIVE);
+//					return;
+//				}
+//			}
+//			
+//			if (skill.getSkillType() == L2SkillType.FUSION)
+//				startFusionSkill(target, skill);
+//			else
+//				callSkill(skill, targets);
+//		}
+//		
+//		// Get the Display Identifier for a skill that client can't display
+//		int displayId = skill.getId();
+//		
+//		// Get the level of the skill
+//		int level = skill.getLevel();
+//		if (level < 1)
+//			level = 1;
+//		
+//		// Broadcast MagicSkillUse for non toggle skills.
+//		/*if (!skill.isToggle())
+//		{
+//			if (!skill.isPotion())
+//			{
+//				if (!(skill.isHeroSkill()))
+//					broadcastPacket(new MagicSkillUse(this, target, displayId, level, skillTime, reuseDelay, false));
+//				
+//				broadcastPacket(new MagicSkillLaunched(this, displayId, level, (targets == null || targets.length == 0) ? new WorldObject[]
+//				{
+//					target
+//				} : targets));
+//			}
+//			else
+//				broadcastPacket(new MagicSkillUse(this, target, displayId, level, 0, 0));
+//		}*/
+//		if (!skill.isToggle())
+//		{
+//			if (!skill.isPotion())
+//			{
+//				broadcastPacket(new MagicSkillUse(this, target, displayId, level, skillTime, reuseDelay, false));
+//				broadcastPacket(new MagicSkillLaunched(this, displayId, level, (targets == null || targets.length == 0) ? new WorldObject[]
+//				{
+//					target
+//				} : targets));
+//			}
+//			else
+//				broadcastPacket(new MagicSkillUse(this, target, displayId, level, 0, 0));
+//		}
+//		
+//		if (this instanceof Playable)
+//		{
+//			// Send a system message USE_S1 to the Creature
+//			if (this instanceof Player && skill.getId() != 1312 && skill.getId() != 2099)
+//			{
+//			//	SystemMessage sm = SystemMessage.getSystemMessage(SystemMessageId.USE_S1);
+//			//	sm.addSkillName(skill);
+//			//	sendPacket(sm);
+//			}
+//			
+//			if (!effectWhileCasting && skill.getItemConsumeId() > 0)
+//			{
+//				if (!destroyItemByItemId("Consume", skill.getItemConsumeId(), skill.getItemConsume(), null, true))
+//				{
+//					getActingPlayer().sendPacket(SystemMessageId.NOT_ENOUGH_ITEMS);
+//					abortCast();
+//					return;
+//				}
+//			}
+//			
+//			// Before start AI Cast Broadcast Fly Effect is Need
+//			if (this instanceof Player && skill.getFlyType() != null)
+//				ThreadPool.schedule(new FlyToLocationTask(this, target, skill), 50);
+//		}
+//		
+//		MagicUseTask mut = new MagicUseTask(targets, skill, skillTime, simultaneously);
+//		
+//		// launch the magic in hitTime milliseconds
+//		if (skillTime > 0)
+//		{
+//			// Send SetupGauge with the color of the gauge and the casting time
+//			if (this instanceof Player && !effectWhileCasting)
+//				sendPacket(new SetupGauge(GaugeColor.BLUE, skillTime));
+//			
+//			if (effectWhileCasting)
+//				mut.phase = 2;
+//			
+//			if (simultaneously)
+//			{
+//				Future<?> future = _skillCast2;
+//				if (future != null)
+//				{
+//					future.cancel(true);
+//					_skillCast2 = null;
+//				}
+//				
+//				// Create a task MagicUseTask to launch the MagicSkill at the end of the casting time (hitTime)
+//				// For client animation reasons (party buffs especially) 400 ms before!
+//				_skillCast2 = ThreadPool.schedule(mut, skillTime - 200);
+//			}
+//			else
+//			{
+//				Future<?> future = _skillCast;
+//				if (future != null)
+//				{
+//					future.cancel(true);
+//					_skillCast = null;
+//				}
+//				
+//				// Create a task MagicUseTask to launch the MagicSkill at the end of the casting time (hitTime)
+//				// For client animation reasons (party buffs especially) 400 ms before!
+//				_skillCast = ThreadPool.schedule(mut, skillTime - 200);
+//			}
+//		}
+//		else
+//		{
+//			mut.skillTime = 0;
+//			onMagicLaunchedTimer(mut);
+//		}
+//	}
 	private void beginCast(L2Skill skill, boolean simultaneously, Creature target, WorldObject[] targets)
 	{
 		if (target == null)
@@ -1222,7 +1463,8 @@ public abstract class Creature extends WorldObject
 		}
 		
 		// Get the casting time of the skill (base)
-		int skillTime = (skill.getHitTime() + skill.getCoolTime());
+		int hitTime = skill.getHitTime();
+		int coolTime = skill.getCoolTime();
 		
 		boolean effectWhileCasting = skill.getSkillType() == L2SkillType.FUSION || skill.getSkillType() == L2SkillType.SIGNET_CASTTIME;
 		
@@ -1230,7 +1472,9 @@ public abstract class Creature extends WorldObject
 		// Don't modify the skill time for FUSION skills. The skill time for those skills represent the buff time.
 		if (!effectWhileCasting)
 		{
-			skillTime = Formulas.calcAtkSpd(this, skill, skillTime);
+			hitTime = Formulas.calcAtkSpd(this, skill, hitTime);
+			if (coolTime > 0)
+				coolTime = Formulas.calcAtkSpd(this, skill, coolTime);
 		}
 		
 		// Calculate altered Cast Speed due to BSpS/SpS
@@ -1239,17 +1483,22 @@ public abstract class Creature extends WorldObject
 			// Only takes 70% of the time to cast a BSpS/SpS cast
 			if (isChargedShot(ShotType.SPIRITSHOT) || isChargedShot(ShotType.BLESSED_SPIRITSHOT))
 			{
-				skillTime = (int) (0.70 * skillTime);
+				hitTime = (int) (0.95 * hitTime);
+				coolTime = (int) (0.50 * coolTime);
 			}
 		}
 		
 		// Don't modify skills HitTime if staticHitTime is specified for skill in datapack.
 		if (skill.isStaticHitTime())
 		{
-			skillTime = skill.getHitTime() + skill.getCoolTime();
+			hitTime = skill.getHitTime();
+			coolTime = skill.getCoolTime();
 		}
+		// if basic hitTime is higher than 500 than the min hitTime is 500
+		//else if (skill.getHitTime() >= 500 && hitTime < 500)
+		//	hitTime = 500;
 		
-		// Set the _castInterruptTime and casting status (Player already has this true)
+		// Set the _castInterruptTime and casting status (L2PcInstance already has this true)
 		if (simultaneously)
 		{
 			// queue herbs and potions
@@ -1264,7 +1513,7 @@ public abstract class Creature extends WorldObject
 		else
 		{
 			setIsCastingNow(true);
-			_castInterruptTime = System.currentTimeMillis() + skillTime / 2;
+			_castInterruptTime = System.currentTimeMillis() + hitTime - 200;
 			setLastSkillCast(skill);
 		}
 		
@@ -1287,10 +1536,10 @@ public abstract class Creature extends WorldObject
 		int initmpcons = getStat().getMpInitialConsume(skill);
 		if (initmpcons > 0)
 		{
-				getStatus().reduceMp(initmpcons);
-				StatusUpdate su = new StatusUpdate(this);
-				su.addAttribute(StatusUpdate.CUR_MP, (int) getCurrentMp());
-				sendPacket(su);
+			getStatus().reduceMp(initmpcons);
+			StatusUpdate su = new StatusUpdate(this);
+			su.addAttribute(StatusUpdate.CUR_MP, (int) getCurrentMp());
+			sendPacket(su);
 		}
 		
 		// Disable the skill during the re-use delay and create a task EnableSkill with Medium priority to enable it at the end of the re-use delay
@@ -1314,7 +1563,7 @@ public abstract class Creature extends WorldObject
 		// For force buff skills, start the effect as long as the player is casting.
 		if (effectWhileCasting)
 		{
-			// Consume Items if necessary and Send the Server->Client packet InventoryUpdate with Item modification to all the Creature
+			// Consume Items if necessary and Send the Server->Client packet InventoryUpdate with Item modification to all the L2Character
 			if (skill.getItemConsumeId() > 0)
 			{
 				if (!destroyItemByItemId("Consume", skill.getItemConsumeId(), skill.getItemConsume(), null, true))
@@ -1345,44 +1594,27 @@ public abstract class Creature extends WorldObject
 		if (level < 1)
 			level = 1;
 		
-		// Broadcast MagicSkillUse for non toggle skills.
-		/*if (!skill.isToggle())
+		// Send MagicSkillUse with target, displayId, level, skillTime, reuseDelay
+		// to the L2Character AND to all L2PcInstance in the _KnownPlayers of the L2Character
+		if (!skill.isPotion())
 		{
-			if (!skill.isPotion())
+			broadcastPacket(new MagicSkillUse(this, target, displayId, level, hitTime, reuseDelay, false));
+			broadcastPacket(new MagicSkillLaunched(this, displayId, level, (targets == null || targets.length == 0) ? new WorldObject[]
 			{
-				if (!(skill.isHeroSkill()))
-					broadcastPacket(new MagicSkillUse(this, target, displayId, level, skillTime, reuseDelay, false));
-				
-				broadcastPacket(new MagicSkillLaunched(this, displayId, level, (targets == null || targets.length == 0) ? new WorldObject[]
-				{
-					target
-				} : targets));
-			}
-			else
-				broadcastPacket(new MagicSkillUse(this, target, displayId, level, 0, 0));
-		}*/
-		if (!skill.isToggle())
-		{
-			if (!skill.isPotion())
-			{
-				broadcastPacket(new MagicSkillUse(this, target, displayId, level, skillTime, reuseDelay, false));
-				broadcastPacket(new MagicSkillLaunched(this, displayId, level, (targets == null || targets.length == 0) ? new WorldObject[]
-				{
-					target
-				} : targets));
-			}
-			else
-				broadcastPacket(new MagicSkillUse(this, target, displayId, level, 0, 0));
+				target
+			} : targets));
 		}
+		else
+			broadcastPacket(new MagicSkillUse(this, target, displayId, level, 0, 0));
 		
 		if (this instanceof Playable)
 		{
-			// Send a system message USE_S1 to the Creature
-			if (this instanceof Player && skill.getId() != 1312 && skill.getId() != 2099)
+			// Send a system message USE_S1 to the L2Character
+			if (this instanceof Player && skill.getId() != 1312)
 			{
-			//	SystemMessage sm = SystemMessage.getSystemMessage(SystemMessageId.USE_S1);
-			//	sm.addSkillName(skill);
-			//	sendPacket(sm);
+				SystemMessage sm = SystemMessage.getSystemMessage(SystemMessageId.USE_S1);
+				sm.addSkillName(skill);
+				sendPacket(sm);
 			}
 			
 			if (!effectWhileCasting && skill.getItemConsumeId() > 0)
@@ -1400,14 +1632,14 @@ public abstract class Creature extends WorldObject
 				ThreadPool.schedule(new FlyToLocationTask(this, target, skill), 50);
 		}
 		
-		MagicUseTask mut = new MagicUseTask(targets, skill, skillTime, simultaneously);
+		MagicUseTask mut = new MagicUseTask(targets, skill, hitTime, coolTime, simultaneously);
 		
 		// launch the magic in hitTime milliseconds
-		if (skillTime > 0)
+		if (hitTime > 0)
 		{
 			// Send SetupGauge with the color of the gauge and the casting time
 			if (this instanceof Player && !effectWhileCasting)
-				sendPacket(new SetupGauge(GaugeColor.BLUE, skillTime));
+				sendPacket(new SetupGauge(GaugeColor.BLUE, hitTime));
 			
 			if (effectWhileCasting)
 				mut.phase = 2;
@@ -1422,8 +1654,8 @@ public abstract class Creature extends WorldObject
 				}
 				
 				// Create a task MagicUseTask to launch the MagicSkill at the end of the casting time (hitTime)
-				// For client animation reasons (party buffs especially) 400 ms before!
-				_skillCast2 = ThreadPool.schedule(mut, skillTime - 200);
+				// For client animation reasons (party buffs especially) 200 ms before!
+				_skillCast2 = ThreadPool.schedule(mut, hitTime - 200);
 			}
 			else
 			{
@@ -1435,13 +1667,13 @@ public abstract class Creature extends WorldObject
 				}
 				
 				// Create a task MagicUseTask to launch the MagicSkill at the end of the casting time (hitTime)
-				// For client animation reasons (party buffs especially) 400 ms before!
-				_skillCast = ThreadPool.schedule(mut, skillTime - 200);
+				// For client animation reasons (party buffs especially) 200 ms before!
+				_skillCast = ThreadPool.schedule(mut, hitTime - 200);
 			}
 		}
 		else
 		{
-			mut.skillTime = 0;
+			mut.hitTime = 0;
 			onMagicLaunchedTimer(mut);
 		}
 	}
@@ -2100,20 +2332,69 @@ public abstract class Creature extends WorldObject
 	}
 	
 	/** Task lauching the magic skill phases */
+//	class MagicUseTask implements Runnable
+//	{
+//		WorldObject[] targets;
+//		L2Skill skill;
+//		int skillTime;
+//		int phase;
+//		boolean simultaneously;
+//		
+//		public MagicUseTask(WorldObject[] tgts, L2Skill s, int hit, boolean simultaneous)
+//		{
+//			targets = tgts;
+//			skill = s;
+//			phase = 1;
+//			skillTime = hit;
+//			simultaneously = simultaneous;
+//		}
+//		
+//		@Override
+//		public void run()
+//		{
+//			try
+//			{
+//				switch (phase)
+//				{
+//					case 1:
+//						onMagicLaunchedTimer(this);
+//						break;
+//					case 2:
+//						onMagicHitTimer(this);
+//						break;
+//					case 3:
+//						onMagicFinalizer(this);
+//						break;
+//					default:
+//						break;
+//				}
+//			}
+//			catch (Exception e)
+//			{
+//				_log.log(Level.SEVERE, "Failed executing MagicUseTask.", e);
+//				if (simultaneously)
+//					setIsCastingSimultaneouslyNow(false);
+//				else
+//					setIsCastingNow(false);
+//			}
+//		}
+//	}
 	class MagicUseTask implements Runnable
 	{
 		WorldObject[] targets;
 		L2Skill skill;
-		int skillTime;
+		int hitTime;
+		int coolTime;
 		int phase;
 		boolean simultaneously;
 		
-		public MagicUseTask(WorldObject[] tgts, L2Skill s, int hit, boolean simultaneous)
+		public MagicUseTask(WorldObject[] tgts, L2Skill s, int hit, int coolT, boolean simultaneous)
 		{
 			targets = tgts;
 			skill = s;
 			phase = 1;
-			skillTime = hit;
+			hitTime = hit;
+			coolTime = coolT;
 			simultaneously = simultaneous;
 		}
 		
@@ -4813,6 +5094,104 @@ public abstract class Creature extends WorldObject
 	 * <FONT COLOR=#FF0000><B> <U>Caution</U> : A magic skill casting MUST BE in progress</B></FONT>
 	 * @param mut
 	 */
+//	public void onMagicLaunchedTimer(MagicUseTask mut)
+//	{
+//		final L2Skill skill = mut.skill;
+//		WorldObject[] targets = mut.targets;
+//		
+//		if (skill == null || targets == null)
+//		{
+//			abortCast();
+//			return;
+//		}
+//		
+//		if (targets.length == 0)
+//		{
+//			switch (skill.getTargetType())
+//			{
+//			// only AURA-type skills can be cast without target
+//				case TARGET_AURA:
+//				case TARGET_FRONT_AURA:
+//				case TARGET_BEHIND_AURA:
+//				case TARGET_AURA_UNDEAD:
+//					break;
+//				default:
+//					abortCast();
+//					return;
+//			}
+//		}
+//		
+//		// Escaping from under skill's radius and peace zone check. First version, not perfect in AoE skills.
+//		int escapeRange = 0;
+//		if (skill.getEffectRange() > escapeRange)
+//			escapeRange = skill.getEffectRange();
+//		else if (skill.getCastRange() < 0 && skill.getSkillRadius() > 80)
+//			escapeRange = skill.getSkillRadius();
+//		
+//		if (targets.length > 0 && escapeRange > 0)
+//		{
+//			int _skiprange = 0;
+//			int _skipgeo = 0;
+//			int _skippeace = 0;
+//			List<Creature> targetList = new ArrayList<>(targets.length);
+//			for (WorldObject target : targets)
+//			{
+//				if (target instanceof Creature)
+//				{
+//					if (!MathUtil.checkIfInRange(escapeRange, this, target, true))
+//					{
+//						_skiprange++;
+//						continue;
+//					}
+//					
+//					if (skill.getSkillRadius() > 0 && skill.isOffensive() && !GeoEngine.getInstance().canSeeTarget(this, target))
+//					{
+//						_skipgeo++;
+//						continue;
+//					}
+//					
+//					if (skill.isOffensive() && isInsidePeaceZone(this, target))
+//					{
+//						_skippeace++;
+//						continue;
+//					}
+//					targetList.add((Creature) target);
+//				}
+//			}
+//			
+//			if (targetList.isEmpty())
+//			{
+//				if (this instanceof Player)
+//				{
+//					if (_skiprange > 0)
+//						sendPacket(SystemMessage.getSystemMessage(SystemMessageId.DIST_TOO_FAR_CASTING_STOPPED));
+//					else if (_skipgeo > 0)
+//						sendPacket(SystemMessage.getSystemMessage(SystemMessageId.CANT_SEE_TARGET));
+//					else if (_skippeace > 0)
+//						sendPacket(SystemMessage.getSystemMessage(SystemMessageId.TARGET_IN_PEACEZONE));
+//				}
+//				abortCast();
+//				return;
+//			}
+//			mut.targets = targetList.toArray(new Creature[targetList.size()]);
+//		}
+//		
+//		// Ensure that a cast is in progress
+//		// Check if player is using fake death.
+//		// Potions can be used while faking death.
+//		if ((mut.simultaneously && !isCastingSimultaneouslyNow()) || (!mut.simultaneously && !isCastingNow()) || (isAlikeDead() && !skill.isPotion()))
+//		{
+//			// now cancels both, simultaneous and normal
+//			getAI().notifyEvent(CtrlEvent.EVT_CANCEL);
+//			return;
+//		}
+//		
+//		mut.phase = 2;
+//		if (mut.skillTime == 0)
+//			onMagicHitTimer(mut);
+//		else
+//			_skillCast = ThreadPool.schedule(mut, 200);
+//	}
 	public void onMagicLaunchedTimer(MagicUseTask mut)
 	{
 		final L2Skill skill = mut.skill;
@@ -4906,7 +5285,7 @@ public abstract class Creature extends WorldObject
 		}
 		
 		mut.phase = 2;
-		if (mut.skillTime == 0)
+		if (mut.hitTime == 0)
 			onMagicHitTimer(mut);
 		else
 			_skillCast = ThreadPool.schedule(mut, 200);
@@ -4915,6 +5294,142 @@ public abstract class Creature extends WorldObject
 	/*
 	 * Runs in the end of skill casting
 	 */
+//	public void onMagicHitTimer(MagicUseTask mut)
+//	{
+//		final L2Skill skill = mut.skill;
+//		final WorldObject[] targets = mut.targets;
+//		
+//		if (skill == null || targets == null)
+//		{
+//			abortCast();
+//			return;
+//		}
+//		
+//		if (getFusionSkill() != null)
+//		{
+//			if (mut.simultaneously)
+//			{
+//				_skillCast2 = null;
+//				setIsCastingSimultaneouslyNow(false);
+//			}
+//			else
+//			{
+//				_skillCast = null;
+//				setIsCastingNow(false);
+//			}
+//			getFusionSkill().onCastAbort();
+//			notifyQuestEventSkillFinished(skill, targets[0]);
+//			return;
+//		}
+//		
+//		final L2Effect mog = getFirstEffect(L2EffectType.SIGNET_GROUND);
+//		if (mog != null)
+//		{
+//			if (mut.simultaneously)
+//			{
+//				_skillCast2 = null;
+//				setIsCastingSimultaneouslyNow(false);
+//			}
+//			else
+//			{
+//				_skillCast = null;
+//				setIsCastingNow(false);
+//			}
+//			mog.exit();
+//			notifyQuestEventSkillFinished(skill, targets[0]);
+//			return;
+//		}
+//		
+//		// Go through targets table
+//		for (WorldObject tgt : targets)
+//		{
+//			if (tgt instanceof Playable)
+//			{
+//				if (skill.getSkillType() == L2SkillType.BUFF || skill.getSkillType() == L2SkillType.FUSION || skill.getSkillType() == L2SkillType.SEED)
+//					((Creature) tgt).sendPacket(SystemMessage.getSystemMessage(SystemMessageId.YOU_FEEL_S1_EFFECT).addSkillName(skill));
+//				
+//				if (this instanceof Player && tgt instanceof Summon)
+//					((Summon) tgt).updateAndBroadcastStatus(1);
+//			}
+//		}
+//		
+//		StatusUpdate su = new StatusUpdate(this);
+//		boolean isSendStatus = false;
+//		
+//		// Consume MP of the Creature and Send the Server->Client packet StatusUpdate with current HP and MP to all other Player to inform
+//		final double mpConsume = getStat().getMpConsume(skill);
+//		if (mpConsume > 0)
+//		{
+//			if (mpConsume > getCurrentMp())
+//			{
+//				sendPacket(SystemMessage.getSystemMessage(SystemMessageId.NOT_ENOUGH_MP));
+//				abortCast();
+//				return;
+//			}
+//			
+//				getStatus().reduceMp(mpConsume);
+//				
+//				su.addAttribute(StatusUpdate.CUR_MP, (int) getCurrentMp());
+//				isSendStatus = true;
+//		}
+//		
+//		// Consume HP if necessary and Send the Server->Client packet StatusUpdate with current HP and MP to all other Player to inform
+//		final double hpConsume = skill.getHpConsume();
+//		if (hpConsume > 0)
+//		{
+//			if (hpConsume > getCurrentHp())
+//			{
+//				sendPacket(SystemMessage.getSystemMessage(SystemMessageId.NOT_ENOUGH_HP));
+//				abortCast();
+//				return;
+//			}
+//			
+//			getStatus().reduceHp(hpConsume, this, true);
+//			su.addAttribute(StatusUpdate.CUR_HP, (int) getCurrentHp());
+//			isSendStatus = true;
+//		}
+//		
+//		// Send StatusUpdate with MP modification to the Player
+//		if (isSendStatus)
+//			sendPacket(su);
+//		
+//		if (this instanceof Player)
+//		{
+//			// check for charges
+//			int charges = ((Player) this).getCharges();
+//			if (skill.getMaxCharges() == 0 && charges < skill.getNumCharges())
+//			{
+//				SystemMessage sm = SystemMessage.getSystemMessage(SystemMessageId.S1_CANNOT_BE_USED);
+//				sm.addSkillName(skill);
+//				sendPacket(sm);
+//				abortCast();
+//				return;
+//			}
+//			
+//			// generate charges if any
+//			if (skill.getNumCharges() > 0)
+//			{
+//				if (skill.getMaxCharges() > 0)
+//					((Player) this).increaseCharges(skill.getNumCharges(), skill.getMaxCharges());
+//				else
+//					((Player) this).decreaseCharges(skill.getNumCharges());
+//			}
+//		}
+//		
+//		// Launch the magic skill in order to calculate its effects
+//		callSkill(mut.skill, mut.targets);
+//		
+//		mut.phase = 3;
+//		if (mut.skillTime == 0)
+//			onMagicFinalizer(mut);
+//		else
+//		{
+//			if (mut.simultaneously)
+//				_skillCast2 = ThreadPool.schedule(mut, 0);
+//			else
+//				_skillCast = ThreadPool.schedule(mut, 0);
+//		}
+//	}
 	public void onMagicHitTimer(MagicUseTask mut)
 	{
 		final L2Skill skill = mut.skill;
@@ -5041,17 +5556,16 @@ public abstract class Creature extends WorldObject
 		callSkill(mut.skill, mut.targets);
 		
 		mut.phase = 3;
-		if (mut.skillTime == 0)
+		if (mut.hitTime == 0 || mut.coolTime == 0)
 			onMagicFinalizer(mut);
 		else
 		{
 			if (mut.simultaneously)
-				_skillCast2 = ThreadPool.schedule(mut, 0);
+				_skillCast2 = ThreadPool.schedule(mut, mut.coolTime);
 			else
-				_skillCast = ThreadPool.schedule(mut, 0);
+				_skillCast = ThreadPool.schedule(mut, mut.coolTime);
 		}
 	}
-	
 	/*
 	 * Runs after skill hitTime+coolTime
 	 */

@@ -15,12 +15,8 @@
 package net.sf.l2j.gameserver.scripting.scripts.ai.individual;
 
 
-import net.sf.l2j.commons.random.Rnd;
-
 import net.sf.l2j.Config;
-import net.sf.l2j.commons.concurrent.ThreadPool;
-
-import net.sf.l2j.gameserver.data.DoorTable;
+import net.sf.l2j.commons.random.Rnd;
 import net.sf.l2j.gameserver.data.SkillTable;
 import net.sf.l2j.gameserver.data.SkillTable.FrequentSkill;
 import net.sf.l2j.gameserver.instancemanager.GrandBossManager;
@@ -28,6 +24,7 @@ import net.sf.l2j.gameserver.instancemanager.ZoneManager;
 import net.sf.l2j.gameserver.model.L2Skill;
 import net.sf.l2j.gameserver.model.World;
 import net.sf.l2j.gameserver.model.WorldObject;
+import net.sf.l2j.gameserver.model.actor.Attackable;
 import net.sf.l2j.gameserver.model.actor.Creature;
 import net.sf.l2j.gameserver.model.actor.Npc;
 import net.sf.l2j.gameserver.model.actor.Playable;
@@ -43,7 +40,8 @@ import net.sf.l2j.gameserver.network.serverpackets.PlaySound;
 import net.sf.l2j.gameserver.scripting.EventType;
 import net.sf.l2j.gameserver.scripting.scripts.ai.L2AttackableAIScript;
 import net.sf.l2j.gameserver.templates.StatsSet;
-import net.sf.l2j.gameserver.model.actor.Attackable;
+
+import Dev.BossTimeRespawn.TimeEpicBossManager;
 
 public class Zaken extends L2AttackableAIScript
 {
@@ -594,39 +592,72 @@ public class Zaken extends L2AttackableAIScript
 	}
 	
 	@Override
+//	public String onKill(Npc npc, Player killer, boolean isPet)
+//	{
+//		int npcId = npc.getNpcId();
+//		if (npcId == ZAKEN)
+//		{
+//			cancelQuestTimer("timer", npc, null);
+//			cancelQuestTimer("minion_cycle", npc, null);
+//			npc.broadcastPacket(new PlaySound(1, "BS02_D", npc));
+//			GrandBossManager.getInstance().setBossStatus(ZAKEN, DEAD);
+//			
+//			long respawnTime;
+//			if(Config.ZAKEN_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.ZAKEN_CUSTOM_SPAWN_TIMES) != null)
+//	        {
+//				respawnTime = Config.FindNext(Config.ZAKEN_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+//			}
+//	        else
+//	        {
+//	            respawnTime = (long) Config.SPAWN_INTERVAL_ZAKEN + Rnd.get(-Config.RANDOM_SPAWN_TIME_ZAKEN, Config.RANDOM_SPAWN_TIME_ZAKEN);
+//	            respawnTime *= 3600000;
+//	        }
+//            
+//			startQuestTimer("zaken_unlock", respawnTime, null, null, false);
+//			
+//			StatsSet info = GrandBossManager.getInstance().getStatsSet(ZAKEN);
+//			info.set("respawn_time", System.currentTimeMillis() + respawnTime);
+//			GrandBossManager.getInstance().setStatsSet(ZAKEN, info);
+//			_open = false;
+//			DoorTable.getInstance().getDoor(21240006).closeMe();
+//		}
+//		else if (GrandBossManager.getInstance().getBossStatus(ZAKEN) == ALIVE)
+//		{
+//			startQuestTimer("CreateOnePrivateEx", ((30 + Rnd.get(60)) * 1000), npc, null, false);
+//		}
+//		return super.onKill(npc, killer, isPet);
+//	}
 	public String onKill(Npc npc, Player killer, boolean isPet)
 	{
 		int npcId = npc.getNpcId();
 		if (npcId == ZAKEN)
 		{
-			cancelQuestTimer("timer", npc, null);
-			cancelQuestTimer("minion_cycle", npc, null);
-			npc.broadcastPacket(new PlaySound(1, "BS02_D", npc));
+			npc.broadcastPacket(new PlaySound("BS02_D"));
 			GrandBossManager.getInstance().setBossStatus(ZAKEN, DEAD);
-			
-			long respawnTime;
-			if(Config.ZAKEN_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.ZAKEN_CUSTOM_SPAWN_TIMES) != null)
-	        {
-				respawnTime = Config.FindNext(Config.ZAKEN_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+
+			// 🆕 Respawn fixo via XML
+			long respawnTime = TimeEpicBossManager.getInstance().getMillisUntilNextRespawn(npcId);
+
+			if (respawnTime <= 0)
+			{
+				respawnTime = 36 * 60 * 60 * 1000L; // fallback de 36h
+				_log.warning("TimeEpicBoss: No respawn configured for Zaken (" + npcId + "), using fallback.");
 			}
-	        else
-	        {
-	            respawnTime = (long) Config.SPAWN_INTERVAL_ZAKEN + Rnd.get(-Config.RANDOM_SPAWN_TIME_ZAKEN, Config.RANDOM_SPAWN_TIME_ZAKEN);
-	            respawnTime *= 3600000;
-	        }
-            
+
 			startQuestTimer("zaken_unlock", respawnTime, null, null, false);
-			
+			cancelQuestTimer("1001", npc, null);
+			cancelQuestTimer("1003", npc, null);
+
 			StatsSet info = GrandBossManager.getInstance().getStatsSet(ZAKEN);
 			info.set("respawn_time", System.currentTimeMillis() + respawnTime);
 			GrandBossManager.getInstance().setStatsSet(ZAKEN, info);
-			_open = false;
-			DoorTable.getInstance().getDoor(21240006).closeMe();
 		}
 		else if (GrandBossManager.getInstance().getBossStatus(ZAKEN) == ALIVE)
 		{
+			// Minions or event creatures
 			startQuestTimer("CreateOnePrivateEx", ((30 + Rnd.get(60)) * 1000), npc, null, false);
 		}
+
 		return super.onKill(npc, killer, isPet);
 	}
 	

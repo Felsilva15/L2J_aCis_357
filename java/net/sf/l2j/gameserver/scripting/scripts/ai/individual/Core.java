@@ -17,6 +17,8 @@ import net.sf.l2j.gameserver.network.serverpackets.PlaySound;
 import net.sf.l2j.gameserver.scripting.scripts.ai.L2AttackableAIScript;
 import net.sf.l2j.gameserver.templates.StatsSet;
 
+import Dev.BossTimeRespawn.TimeEpicBossManager;
+
 public class Core extends L2AttackableAIScript
 {
 	private static final int CORE = 29006;
@@ -151,6 +153,45 @@ public class Core extends L2AttackableAIScript
 	}
 
 	@Override
+//	public String onKill(Npc npc, Player killer, boolean isPet)
+//	{
+//		if (npc.getNpcId() == CORE)
+//		{
+//			npc.broadcastPacket(new PlaySound(1, "BS02_D", npc));
+//			npc.broadcastNpcSay("A fatal error has occurred.");
+//			npc.broadcastNpcSay("System is being shut down...");
+//			npc.broadcastNpcSay("......");
+//			
+//			addSpawn(31842, 16502, 110165, -6394, 0, false, 900000, false);
+//			addSpawn(31842, 18948, 110166, -6397, 0, false, 900000, false);
+//			GrandBossManager.getInstance().setBossStatus(CORE, DEAD);
+//			
+//			long respawnTime;
+//            if(Config.CORE_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.CORE_CUSTOM_SPAWN_TIMES) != null)
+//            {
+//				respawnTime = Config.FindNext(Config.CORE_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+//			}
+//            else
+//            {
+//    			respawnTime = (long) Config.SPAWN_INTERVAL_CORE + Rnd.get(-Config.RANDOM_SPAWN_TIME_CORE, Config.RANDOM_SPAWN_TIME_CORE);
+//    			respawnTime *= 3600000;
+//            }
+//			
+//			startQuestTimer("core_unlock", respawnTime, null, null, false);
+//			
+//			final StatsSet info = GrandBossManager.getInstance().getStatsSet(CORE);
+//			info.set("respawn_time", System.currentTimeMillis() + respawnTime);
+//			GrandBossManager.getInstance().setStatsSet(CORE, info);
+//			startQuestTimer("despawn_minions", 20000, null, null, false);
+//			cancelQuestTimers("spawn_minion");
+//		}
+//		else if (GrandBossManager.getInstance().getBossStatus(CORE) == ALIVE && _minions != null && _minions.contains(npc))
+//		{
+//			_minions.remove(npc);
+//			startQuestTimer("spawn_minion", 60000, npc, null, false);
+//		}
+//		return super.onKill(npc, killer, isPet);
+//	}
 	public String onKill(Npc npc, Player killer, boolean isPet)
 	{
 		if (npc.getNpcId() == CORE)
@@ -159,27 +200,26 @@ public class Core extends L2AttackableAIScript
 			npc.broadcastNpcSay("A fatal error has occurred.");
 			npc.broadcastNpcSay("System is being shut down...");
 			npc.broadcastNpcSay("......");
-			
+
 			addSpawn(31842, 16502, 110165, -6394, 0, false, 900000, false);
 			addSpawn(31842, 18948, 110166, -6397, 0, false, 900000, false);
 			GrandBossManager.getInstance().setBossStatus(CORE, DEAD);
-			
-			long respawnTime;
-            if(Config.CORE_CUSTOM_SPAWN_ENABLED && Config.FindNext(Config.CORE_CUSTOM_SPAWN_TIMES) != null)
-            {
-				respawnTime = Config.FindNext(Config.CORE_CUSTOM_SPAWN_TIMES).getTimeInMillis() - System.currentTimeMillis();
+
+			// 🆕 Tempo fixo via XML
+			long respawnTime = TimeEpicBossManager.getInstance().getMillisUntilNextRespawn(npc.getNpcId());
+
+			if (respawnTime <= 0)
+			{
+				respawnTime = 36 * 60 * 60 * 1000L; // fallback de 36h
+				_log.warning("TimeEpicBoss: No respawn configured for Core (" + npc.getNpcId() + "), using fallback.");
 			}
-            else
-            {
-    			respawnTime = (long) Config.SPAWN_INTERVAL_CORE + Rnd.get(-Config.RANDOM_SPAWN_TIME_CORE, Config.RANDOM_SPAWN_TIME_CORE);
-    			respawnTime *= 3600000;
-            }
-			
+
 			startQuestTimer("core_unlock", respawnTime, null, null, false);
-			
+
 			final StatsSet info = GrandBossManager.getInstance().getStatsSet(CORE);
 			info.set("respawn_time", System.currentTimeMillis() + respawnTime);
 			GrandBossManager.getInstance().setStatsSet(CORE, info);
+
 			startQuestTimer("despawn_minions", 20000, null, null, false);
 			cancelQuestTimers("spawn_minion");
 		}
