@@ -8380,7 +8380,7 @@ public class Player extends Playable
 			}
 			
 			// Check if a Forced ATTACK is in progress on non-attackable target
-			if (!target.isAutoAttackable(this) && !(CTF.is_started() && _inEventCTF))
+			if (!target.isAutoAttackable(this) && !forceUse && !(CTF.is_started() && _inEventCTF))
 			{
 				switch (sklTargetType)
 				{
