@@ -654,9 +654,9 @@ public class EnterWorld extends L2GameClientPacket
 	        if (exists) {
 	            int classId = activeChar.getBaseClass();
 	            String className = CharTemplateTable.getInstance().getClassNameById(classId);
-	            Announcement.Announce("O Hero " + activeChar.getName() + " da classe " + className + " está online!");
+	            Announcement.Announce("O Hero " + activeChar.getName() + " da classe " + className + " esta online!");
 	        } else if ((HeroManager.getInstance().hasHeroPrivileges(activeChar.getObjectId()) || activeChar.isHero()) && Config.ANNOUNCE_HERO_ON_CUSTOM) {
-	            Announcement.Announce("O Hero " + activeChar.getName() + " está online!");
+	            Announcement.Announce("O Hero " + activeChar.getName() + " esta online!");
 	        }
 	    }
 	
