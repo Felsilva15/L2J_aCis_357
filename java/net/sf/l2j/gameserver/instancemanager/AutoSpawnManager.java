@@ -412,9 +412,10 @@ public class AutoSpawnManager
 					}
 				}
 				
+				// Removing this for now, to avoid spamming the chat with messages.
 				// Announce to all players that the spawn has taken place, with the nearest town location.
-				if (npcInst != null && spawnInst.isBroadcasting())
-					Broadcast.announceToOnlinePlayers("The " + npcInst.getName() + " has spawned near " + MapRegionTable.getInstance().getClosestTownName(npcInst.getX(), npcInst.getY()) + "!");
+				//if (npcInst != null && spawnInst.isBroadcasting())
+					//Broadcast.announceToOnlinePlayers("The " + npcInst.getName() + " has spawned near " + MapRegionTable.getInstance().getClosestTownName(npcInst.getX(), npcInst.getY()) + "!");
 				
 				// If there is no despawn time, do not create a despawn task.
 				if (spawnInst.getDespawnDelay() > 0)

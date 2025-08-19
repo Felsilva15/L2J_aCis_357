@@ -1,0 +1,32 @@
+!SESSION 2025-08-18 18:45:46.757 -----------------------------------------------
+eclipse.buildId=4.36.0.20250605-1300
+java.version=21.0.7
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Framework arguments:  -product org.eclipse.epp.package.java.product
+Command-line arguments:  -os win32 -ws win32 -arch x86_64 -product org.eclipse.epp.package.java.product
+
+!ENTRY ch.qos.logback.classic 1 0 2025-08-18 18:45:49.807
+!MESSAGE Activated before the state location was initialized. Retry after the state location is initialized.
+
+!ENTRY ch.qos.logback.classic 1 0 2025-08-18 18:46:14.353
+!MESSAGE Logback config file: C:\Users\felip\Desktop\L2j_gitsaga\src\.metadata\.plugins\org.eclipse.m2e.logback\logback.2.7.100.20250418-1315.xml
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-08-18 18:46:24.794
+!MESSAGE [Info] Starting language server with binary lsp agent.
+
+!ENTRY org.eclipse.egit.ui 2 0 2025-08-18 18:46:24.829
+!MESSAGE Warning: The environment variable HOME is not set. The following directory will be used to store the Git
+user global configuration and to define the default location to store repositories: 'C:\Users\felip'. If this is
+not correct please set the HOME environment variable and restart Eclipse. Otherwise Git for Windows and
+EGit might behave differently since they see different configuration options.
+This warning can be switched off on the Team > Git > Confirmations and Warnings preference page.
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-08-18 18:46:25.117
+!MESSAGE [Info] Lsp agent started successfully.
+
+!ENTRY org.eclipse.lsp4e 1 0 2025-08-18 18:46:26.638
+!MESSAGE [Info]	[lsp] GitHub Copilot Language Server 1.335.0 initialized
+
+!ENTRY org.eclipse.lsp4e 1 0 2025-08-18 18:46:26.884
+!MESSAGE [Info]	[certificates] Removed 8 expired certificates
